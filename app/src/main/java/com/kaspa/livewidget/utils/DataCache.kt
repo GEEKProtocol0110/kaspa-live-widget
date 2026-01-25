@@ -60,6 +60,7 @@ class DataCache(context: Context) {
         private const val CACHE_PREFS_NAME = "kaspa_widget_cache"
         private const val KEY_CACHED_DATA = "cached_data"
         private const val KEY_LAST_UPDATE = "last_update"
-        private const val CACHE_VALIDITY_MS = 15 * 60 * 1000L // 15 minutes
+        // Cache validity set to slightly less than update interval (15 min) to ensure fresh data
+        private const val CACHE_VALIDITY_MS = 14 * 60 * 1000L // 14 minutes
     }
 }

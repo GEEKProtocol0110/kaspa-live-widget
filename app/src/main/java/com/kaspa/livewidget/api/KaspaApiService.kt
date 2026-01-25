@@ -23,13 +23,24 @@ class KaspaApiService {
 
     private val gson = Gson()
 
+    companion object {
+        // API endpoints as constants for easier maintenance and testing
+        private const val COINGECKO_PRICE_URL = 
+            "https://api.coingecko.com/api/v3/simple/price?ids=kaspa&vs_currencies=usd"
+        private const val KASPA_BLOCKDAG_URL = "https://api.kaspa.org/info/blockdag"
+        private const val KASPA_HASHRATE_URL = "https://api.kaspa.org/info/hashrate"
+        
+        // Kaspa generates approximately 1 block per second on average
+        private const val DEFAULT_BPS = 1.0
+    }
+
     /**
      * Fetch current Kaspa price in USD from CoinGecko
      */
     suspend fun fetchPrice(): Double? = withContext(Dispatchers.IO) {
         try {
             val request = Request.Builder()
-                .url("https://api.coingecko.com/api/v3/simple/price?ids=kaspa&vs_currencies=usd")
+                .url(COINGECKO_PRICE_URL)
                 .build()
 
             client.newCall(request).execute().use { response ->
@@ -53,7 +64,7 @@ class KaspaApiService {
     suspend fun fetchNetworkInfo(): NetworkInfoResponse? = withContext(Dispatchers.IO) {
         try {
             val request = Request.Builder()
-                .url("https://api.kaspa.org/info/blockdag")
+                .url(KASPA_BLOCKDAG_URL)
                 .build()
 
             client.newCall(request).execute().use { response ->
@@ -77,7 +88,7 @@ class KaspaApiService {
         try {
             // Using a public Kaspa explorer API for hashrate
             val request = Request.Builder()
-                .url("https://api.kaspa.org/info/hashrate")
+                .url(KASPA_HASHRATE_URL)
                 .build()
 
             client.newCall(request).execute().use { response ->
@@ -109,7 +120,7 @@ class KaspaApiService {
         KaspaNetworkData(
             price = price,
             blockHeight = blockHeight,
-            bps = 1.0, // Default BPS, can be calculated from block height changes over time
+            bps = DEFAULT_BPS, // Kaspa generates ~1 block per second on average
             hashrate = hashrate,
             timestamp = System.currentTimeMillis()
         )

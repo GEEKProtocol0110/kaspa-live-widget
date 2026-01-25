@@ -13,6 +13,8 @@ import java.util.concurrent.TimeUnit
 object WorkScheduler {
 
     private const val WORK_NAME = "kaspa_widget_update"
+    // Update interval: 15 minutes balances freshness with battery usage
+    // Users concerned about battery can adjust via Android's battery optimization settings
     private const val UPDATE_INTERVAL_MINUTES = 15L
 
     /**
