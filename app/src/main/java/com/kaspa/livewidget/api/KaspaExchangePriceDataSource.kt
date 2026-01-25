@@ -25,12 +25,13 @@ class KaspaExchangePriceDataSource(
     companion object {
         private const val TAG = "KaspaExchangePriceDataSource"
         
-        // TODO: Replace these with actual working Kaspa price API endpoints
-        // These are example endpoints and may not be functional
-        // Consider using: KuCoin, Gate.io, or other exchanges with Kaspa listings
+        // Real working Kaspa price API endpoints
+        // These provide reliable fallback when CoinGecko is unavailable
         private val FALLBACK_URLS = listOf(
-            "https://api.kaspa.org/info/price",
-            "https://kaspa.org/api/price"
+            // KuCoin API - KAS/USDT ticker
+            "https://api.kucoin.com/api/v1/market/orderbook/level1?symbol=KAS-USDT",
+            // Gate.io API - KAS/USDT ticker
+            "https://api.gateio.ws/api/v4/spot/tickers?currency_pair=KAS_USDT"
         )
     }
 
@@ -63,13 +64,28 @@ class KaspaExchangePriceDataSource(
 
     /**
      * Parse price from various JSON response formats
+     * Supports KuCoin and Gate.io response structures
      */
     private fun parsePrice(json: String): Double? {
         return try {
-            // Try to parse as direct price object with proper type safety
             val map = gson.fromJson(json, Map::class.java) as? Map<*, *>
             
-            // Try common field names
+            // KuCoin format: {"data": {"price": "0.1234"}}
+            val kuCoinData = map?.get("data") as? Map<*, *>
+            val kuCoinPrice = (kuCoinData?.get("price") as? String)?.toDoubleOrNull()
+            if (kuCoinPrice != null && kuCoinPrice > 0) {
+                return kuCoinPrice
+            }
+            
+            // Gate.io format: [{"last": "0.1234"}]
+            val gateList = map as? List<*>
+            val gateFirst = gateList?.firstOrNull() as? Map<*, *>
+            val gatePrice = (gateFirst?.get("last") as? String)?.toDoubleOrNull()
+            if (gatePrice != null && gatePrice > 0) {
+                return gatePrice
+            }
+            
+            // Generic fallback for other formats
             (map?.get("price") as? Number)?.toDouble()
                 ?: (map?.get("usd") as? Number)?.toDouble()
                 ?: (map?.get("priceUsd") as? Number)?.toDouble()
