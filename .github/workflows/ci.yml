@@ -22,19 +22,15 @@ jobs:
         cache: gradle
     
     - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+      with:
+        cmdline-tools-version: 9477386
+        
+    - name: Configure Android SDK
       run: |
-        wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O android-sdk.zip
-        mkdir -p $HOME/android-sdk/cmdline-tools
-        unzip -q android-sdk.zip -d $HOME/android-sdk/cmdline-tools
-        mv $HOME/android-sdk/cmdline-tools/cmdline-tools $HOME/android-sdk/cmdline-tools/latest
-        echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
-        echo "$HOME/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
-        echo "$HOME/android-sdk/platform-tools" >> $GITHUB_PATH
-    
-    - name: Install Android SDK components
-      run: |
-        yes | sdkmanager --licenses || true
-        sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools"
+        echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
+        yes | sdkmanager --licenses
+        sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
       
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
