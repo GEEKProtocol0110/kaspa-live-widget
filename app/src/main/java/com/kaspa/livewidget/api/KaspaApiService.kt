@@ -1,0 +1,126 @@
+package com.kaspa.livewidget.api
+
+import com.google.gson.Gson
+import com.kaspa.livewidget.data.KaspaNetworkData
+import com.kaspa.livewidget.data.NetworkInfoResponse
+import com.kaspa.livewidget.data.PriceResponse
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import java.util.concurrent.TimeUnit
+
+/**
+ * Service for fetching Kaspa network data from public APIs
+ * Uses read-only APIs: CoinGecko for price, Kaspa API for network stats
+ */
+class KaspaApiService {
+
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(10, TimeUnit.SECONDS)
+        .readTimeout(10, TimeUnit.SECONDS)
+        .build()
+
+    private val gson = Gson()
+
+    /**
+     * Fetch current Kaspa price in USD from CoinGecko
+     */
+    suspend fun fetchPrice(): Double? = withContext(Dispatchers.IO) {
+        try {
+            val request = Request.Builder()
+                .url("https://api.coingecko.com/api/v3/simple/price?ids=kaspa&vs_currencies=usd")
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    response.body?.string()?.let { body ->
+                        val priceResponse = gson.fromJson(body, PriceResponse::class.java)
+                        priceResponse.kaspa?.usd
+                    }
+                } else null
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    /**
+     * Fetch network information from Kaspa API
+     * Uses api.kaspa.org public endpoint
+     */
+    suspend fun fetchNetworkInfo(): NetworkInfoResponse? = withContext(Dispatchers.IO) {
+        try {
+            val request = Request.Builder()
+                .url("https://api.kaspa.org/info/blockdag")
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    response.body?.string()?.let { body ->
+                        gson.fromJson(body, NetworkInfoResponse::class.java)
+                    }
+                } else null
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    /**
+     * Fetch hashrate information
+     * This is a simplified version - can be enhanced with actual hashrate API
+     */
+    suspend fun fetchHashrate(): String = withContext(Dispatchers.IO) {
+        try {
+            // Using a public Kaspa explorer API for hashrate
+            val request = Request.Builder()
+                .url("https://api.kaspa.org/info/hashrate")
+                .build()
+
+            client.newCall(request).execute().use { response ->
+                if (response.isSuccessful) {
+                    response.body?.string()?.let { body ->
+                        // Parse hashrate from response
+                        val hashrate = gson.fromJson(body, Map::class.java)
+                        formatHashrate(hashrate["hashrate"] as? Double ?: 0.0)
+                    } ?: "N/A"
+                } else "N/A"
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            "N/A"
+        }
+    }
+
+    /**
+     * Fetch all Kaspa network data in one call
+     */
+    suspend fun fetchAllData(): KaspaNetworkData = withContext(Dispatchers.IO) {
+        val price = fetchPrice() ?: 0.0
+        val networkInfo = fetchNetworkInfo()
+        val hashrate = fetchHashrate()
+        
+        // Calculate BPS (blocks per second) from block height changes
+        val blockHeight = networkInfo?.virtualDaaScore ?: 0L
+        
+        KaspaNetworkData(
+            price = price,
+            blockHeight = blockHeight,
+            bps = 1.0, // Default BPS, can be calculated from block height changes over time
+            hashrate = hashrate,
+            timestamp = System.currentTimeMillis()
+        )
+    }
+
+    private fun formatHashrate(hashrate: Double): String {
+        return when {
+            hashrate >= 1_000_000_000_000 -> String.format("%.2f PH/s", hashrate / 1_000_000_000_000)
+            hashrate >= 1_000_000_000 -> String.format("%.2f TH/s", hashrate / 1_000_000_000)
+            hashrate >= 1_000_000 -> String.format("%.2f GH/s", hashrate / 1_000_000)
+            else -> String.format("%.2f MH/s", hashrate / 1_000)
+        }
+    }
+}
