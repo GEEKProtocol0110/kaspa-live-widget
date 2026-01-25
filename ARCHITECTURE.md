@@ -92,14 +92,30 @@ Kaspa Live Widget is an Android home screen widget application that displays liv
 
 ### 3. Data Layer
 
+#### PriceDataSource Interface
+- **Purpose**: Abstraction for price data providers
+- **Implementations**:
+  - `CoinGeckoPriceDataSource`: Primary source (CoinGecko API)
+  - `KaspaExchangePriceDataSource`: Fallback source
+- **Fallback Strategy**: Tries each source in order until one succeeds
+- **Benefits**: 
+  - Resilience against rate limiting
+  - No hard dependency on single provider
+  - Easy to add new sources
+
 #### KaspaApiService
-- **Purpose**: Fetches data from public APIs
+- **Purpose**: Fetches data from public APIs with fallback handling
 - **APIs Used**:
-  - CoinGecko: `https://api.coingecko.com/api/v3/simple/price`
+  - Price: Multiple sources via PriceDataSource interface
+    - Primary: CoinGecko `https://api.coingecko.com/api/v3/simple/price`
+    - Fallback: Kaspa exchange APIs
   - Kaspa Network: `https://api.kaspa.org/info/blockdag`
   - Kaspa Hashrate: `https://api.kaspa.org/info/hashrate`
 - **Technology**: OkHttp + Gson
-- **Error Handling**: Try-catch with null returns
+- **Error Handling**: 
+  - Try-catch with null returns
+  - Automatic fallback to secondary price sources
+  - Rate limit detection (HTTP 429)
 
 #### DataCache
 - **Purpose**: Caches network data locally

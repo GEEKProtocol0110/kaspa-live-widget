@@ -38,8 +38,11 @@ Displays:
 - **Update Interval**: 15 minutes
 
 ### Data Sources
-- **Price Data**: CoinGecko API (public, read-only)
+- **Price Data**: Multiple sources with automatic fallback
+  - Primary: CoinGecko API (public, read-only)
+  - Fallback: Kaspa exchange APIs (public, read-only)
 - **Network Data**: Kaspa API (public, read-only)
+- **Resilience**: Automatic failover if primary source is rate-limited or unavailable
 
 ### Key Components
 - `KaspaWidgetProvider`: 2x2 widget provider

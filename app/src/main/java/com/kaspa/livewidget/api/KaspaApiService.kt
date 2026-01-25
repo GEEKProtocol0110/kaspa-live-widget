@@ -3,7 +3,6 @@ package com.kaspa.livewidget.api
 import com.google.gson.Gson
 import com.kaspa.livewidget.data.KaspaNetworkData
 import com.kaspa.livewidget.data.NetworkInfoResponse
-import com.kaspa.livewidget.data.PriceResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -12,9 +11,15 @@ import java.util.concurrent.TimeUnit
 
 /**
  * Service for fetching Kaspa network data from public APIs
- * Uses read-only APIs: CoinGecko for price, Kaspa API for network stats
+ * Uses multiple price data sources with fallback handling
+ * Network stats from Kaspa API
  */
-class KaspaApiService {
+class KaspaApiService(
+    private val priceSources: List<PriceDataSource> = listOf(
+        CoinGeckoPriceDataSource(),
+        KaspaExchangePriceDataSource()
+    )
+) {
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(10, TimeUnit.SECONDS)
@@ -25,8 +30,6 @@ class KaspaApiService {
 
     companion object {
         // API endpoints as constants for easier maintenance and testing
-        private const val COINGECKO_PRICE_URL = 
-            "https://api.coingecko.com/api/v3/simple/price?ids=kaspa&vs_currencies=usd"
         private const val KASPA_BLOCKDAG_URL = "https://api.kaspa.org/info/blockdag"
         private const val KASPA_HASHRATE_URL = "https://api.kaspa.org/info/hashrate"
         
@@ -35,26 +38,23 @@ class KaspaApiService {
     }
 
     /**
-     * Fetch current Kaspa price in USD from CoinGecko
+     * Fetch current Kaspa price in USD with fallback handling
+     * Tries each price source in order until one succeeds
      */
-    suspend fun fetchPrice(): Double? = withContext(Dispatchers.IO) {
-        try {
-            val request = Request.Builder()
-                .url(COINGECKO_PRICE_URL)
-                .build()
-
-            client.newCall(request).execute().use { response ->
-                if (response.isSuccessful) {
-                    response.body?.string()?.let { body ->
-                        val priceResponse = gson.fromJson(body, PriceResponse::class.java)
-                        priceResponse.kaspa?.usd
-                    }
-                } else null
+    suspend fun fetchPrice(): Double? {
+        for (source in priceSources) {
+            try {
+                val price = source.fetchPrice()
+                if (price != null && price > 0) {
+                    println("Successfully fetched price from ${source.sourceName}: $$price")
+                    return price
+                }
+            } catch (e: Exception) {
+                println("Failed to fetch from ${source.sourceName}: ${e.message}")
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
         }
+        println("All price sources failed, returning null")
+        return null
     }
 
     /**
