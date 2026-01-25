@@ -339,7 +339,7 @@ Widget display refreshed on home screen
 
 5. **Performance**
    - GraphQL for optimized queries
-   - WebSocket for real-time updates
+   - WebSocket for near real-time updates
    - Image caching for icons
 
 ## Dependencies

@@ -5,7 +5,7 @@ A free Android home screen widget that displays live Kaspa network data.
 ## Features
 
 - 📱 **Two Widget Sizes**: 2x2 and 4x2 layouts
-- 💰 **Live KAS Price**: Real-time USD price from CoinGecko
+- 💰 **Live KAS Price**: Auto-updated USD price from CoinGecko
 - 📊 **Network Stats**: Block height, BPS (Blocks Per Second), and hashrate
 - ⏰ **Current Time**: Shows current time on widget
 - 🔄 **Auto Updates**: Scheduled updates every 15 minutes using WorkManager
