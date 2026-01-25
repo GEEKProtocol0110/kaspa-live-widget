@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Kaspa Brand Colors -->
+    <color name="kaspa_mint">#00D4AA</color>
+    <color name="kaspa_dark">#0A0E27</color>
+    <color name="kaspa_black">#000000</color>
+    <color name="kaspa_white">#FFFFFF</color>
+    <color name="kaspa_gray">#B0B0B0</color>
+    <color name="kaspa_overlay">#CC000000</color>
+    <color name="kaspa_panel">#E6000000</color>
+</resources>

@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">Kaspa Live Widget</string>
     <string name="widget_name">Kaspa 2x2</string>
-    <string name="widget_name_large">Kaspa 4x2</string>
+    <string name="widget_name_large">Kaspa 4x4</string>
     <string name="widget_description">Live Kaspa network data widget</string>
     <string name="kaspa_label">KASPA (KAS)</string>
     <string name="block_label">Block</string>

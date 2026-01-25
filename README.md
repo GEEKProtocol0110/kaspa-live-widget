@@ -17,29 +17,33 @@
 
 ## Features
 
-- 📱 **Two Widget Sizes**: 2x2 and 4x2 layouts
+- 📱 **Two Widget Sizes**: 2x2 (quick glance) and 4x4 (command view)
+- 🎨 **Unified Design**: Kaspa mint blob background with bold black "K" on both sizes
 - 💰 **Live KAS Price**: Auto-updated USD price from CoinGecko
 - 📊 **Network Stats**: Block height, BPS (Blocks Per Second), and hashrate
 - ⏰ **Current Time**: Shows current time on widget
 - 🔄 **Auto Updates**: Scheduled updates every 15 minutes using WorkManager
 - 💾 **Smart Caching**: Caches data to reduce API calls
-- 🎨 **Clean Design**: Modern dark theme with Kaspa brand colors
+- 🎨 **Clean Design**: Dark translucent data panels over Kaspa brand visuals
 
 ## Widget Layouts
 
-### 2x2 Widget (Compact)
-Displays:
-- Current time
-- KAS price (USD)
-- Block height
+### 2x2 Widget (Quick Glance)
+**Purpose**: Minimal information at a glance
+- Kaspa logo blob (mint) background with centered black "K"
+- Current time (top)
+- KAS price (center focus, in dark panel)
+- Block height (bottom panel)
+- No clutter, maximum clarity
 
-### 4x2 Widget (Extended)
-Displays:
-- Current time
-- KAS price (USD)
-- Block height
-- BPS (Blocks Per Second)
-- Network hashrate
+### 4x4 Widget (Command View)
+**Purpose**: Expanded view with more breathing room
+- Same Kaspa blob background and black "K" (feels like unlocking more info)
+- Time + "Last updated" indicator (top row)
+- Expanded KAS price with 24h change (center)
+- Block height + BPS (middle row, side-by-side panels)
+- Network hashrate (bottom panel)
+- More space, not more noise
 
 ## Technical Details
 

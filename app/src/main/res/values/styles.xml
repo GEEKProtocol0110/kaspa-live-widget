@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Widget Typography -->
+    <style name="Widget.Kaspa.Text" parent="android:Widget">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textColor">@color/kaspa_white</item>
+    </style>
+    
+    <style name="Widget.Kaspa.Text.Time">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    
+    <style name="Widget.Kaspa.Text.Price">
+        <item name="android:textSize">28sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/kaspa_mint</item>
+    </style>
+    
+    <style name="Widget.Kaspa.Text.Price.Large">
+        <item name="android:textSize">32sp</item>
+    </style>
+    
+    <style name="Widget.Kaspa.Text.Label">
+        <item name="android:textSize">10sp</item>
+        <item name="android:textColor">@color/kaspa_gray</item>
+    </style>
+    
+    <style name="Widget.Kaspa.Text.Value">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    
+    <style name="Widget.Kaspa.Text.Value.Large">
+        <item name="android:textSize">16sp</item>
+    </style>
+    
+    <!-- Data Panel -->
+    <style name="Widget.Kaspa.Panel">
+        <item name="android:background">@drawable/data_panel_background</item>
+        <item name="android:padding">8dp</item>
+    </style>
+</resources>

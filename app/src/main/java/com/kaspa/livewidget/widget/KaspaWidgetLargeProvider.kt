@@ -13,8 +13,8 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * Widget provider for 4x2 Kaspa widget
- * Displays time, price, block height, BPS, and hashrate
+ * Widget provider for 4x4 Kaspa widget
+ * Displays time, last updated, expanded price with 24h change, block height, BPS, and hashrate
  */
 class KaspaWidgetLargeProvider : AppWidgetProvider() {
 
@@ -66,6 +66,11 @@ class KaspaWidgetLargeProvider : AppWidgetProvider() {
             val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
             views.setTextViewText(R.id.widget_time, timeFormat.format(Date()))
 
+            // Update "last updated" indicator
+            val updatedFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+            val updatedText = "Updated: ${updatedFormat.format(Date())}"
+            views.setTextViewText(R.id.widget_updated, updatedText)
+
             // Update price
             val priceText = if (data.price > 0) {
                 String.format("$%.4f", data.price)
@@ -73,6 +78,9 @@ class KaspaWidgetLargeProvider : AppWidgetProvider() {
                 "$--"
             }
             views.setTextViewText(R.id.widget_price, priceText)
+
+            // Update 24h price change (placeholder for now)
+            views.setTextViewText(R.id.widget_price_change, "24h: --")
 
             // Update block height
             val blockHeightText = if (data.blockHeight > 0) {
@@ -83,7 +91,11 @@ class KaspaWidgetLargeProvider : AppWidgetProvider() {
             views.setTextViewText(R.id.widget_block_height, blockHeightText)
 
             // Update BPS
-            val bpsText = String.format("%.1f BPS", data.bps)
+            val bpsText = if (data.bps > 0) {
+                String.format("%.1f", data.bps)
+            } else {
+                "--"
+            }
             views.setTextViewText(R.id.widget_bps, bpsText)
 
             // Update hashrate
