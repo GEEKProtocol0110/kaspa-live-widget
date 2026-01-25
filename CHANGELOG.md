@@ -10,10 +10,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Planned
 - Settings screen for customization
 - Multiple theme options
-- Additional widget sizes (3x2, 4x4)
+- Additional widget sizes (3x2, 3x3)
 - Configurable update intervals
 - Price alerts and notifications
 - Multi-currency support (EUR, GBP, etc.)
+
+## [1.1.0] - 2026-01-25
+
+### Changed
+- **BREAKING DESIGN UPDATE**: Unified visual identity across all widgets
+- Redesigned both widgets with Kaspa mint blob background and centered black "K"
+- Changed 4x2 widget to 4x4 for proper square expansion
+- Dark translucent panels replace old design
+- Improved layout hierarchy using FrameLayout for layered design
+
+### Added
+- Created shared design system (colors.xml, styles.xml)
+- Added "Last updated" indicator on 4x4 widget
+- Added placeholder for 24h price change on 4x4 widget
+- New drawable resources: kaspa_blob_background, data_panel_background
+- Consistent typography styles across both widget sizes
+
+### Technical
+- Fixed CI/CD workflows with proper Android SDK setup
+- Enhanced ProGuard rules for production builds
+- Updated widget metadata for 4x4 size
+- Improved widget provider implementations
 
 ## [1.0.0] - 2026-01-25
 
