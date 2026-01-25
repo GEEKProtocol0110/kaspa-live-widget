@@ -1,5 +1,6 @@
 package com.kaspa.livewidget.api
 
+import android.util.Log
 import com.google.gson.Gson
 import com.kaspa.livewidget.data.PriceResponse
 import kotlinx.coroutines.Dispatchers
@@ -23,6 +24,7 @@ class CoinGeckoPriceDataSource(
     override val sourceName: String = "CoinGecko"
 
     companion object {
+        private const val TAG = "CoinGeckoPriceDataSource"
         private const val COINGECKO_PRICE_URL = 
             "https://api.coingecko.com/api/v3/simple/price?ids=kaspa&vs_currencies=usd"
     }
@@ -42,13 +44,13 @@ class CoinGeckoPriceDataSource(
                 } else {
                     // Rate limiting typically returns 429
                     if (response.code == 429) {
-                        println("$sourceName: Rate limited")
+                        Log.w(TAG, "Rate limited by $sourceName")
                     }
                     null
                 }
             }
         } catch (e: Exception) {
-            println("$sourceName: Error fetching price - ${e.message}")
+            Log.e(TAG, "Error fetching price from $sourceName", e)
             null
         }
     }

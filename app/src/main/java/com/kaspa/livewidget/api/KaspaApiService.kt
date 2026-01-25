@@ -1,5 +1,6 @@
 package com.kaspa.livewidget.api
 
+import android.util.Log
 import com.google.gson.Gson
 import com.kaspa.livewidget.data.KaspaNetworkData
 import com.kaspa.livewidget.data.NetworkInfoResponse
@@ -29,6 +30,8 @@ class KaspaApiService(
     private val gson = Gson()
 
     companion object {
+        private const val TAG = "KaspaApiService"
+        
         // API endpoints as constants for easier maintenance and testing
         private const val KASPA_BLOCKDAG_URL = "https://api.kaspa.org/info/blockdag"
         private const val KASPA_HASHRATE_URL = "https://api.kaspa.org/info/hashrate"
@@ -46,14 +49,14 @@ class KaspaApiService(
             try {
                 val price = source.fetchPrice()
                 if (price != null && price > 0) {
-                    println("Successfully fetched price from ${source.sourceName}: $$price")
+                    Log.d(TAG, "Successfully fetched price from ${source.sourceName}: $$price")
                     return price
                 }
             } catch (e: Exception) {
-                println("Failed to fetch from ${source.sourceName}: ${e.message}")
+                Log.w(TAG, "Failed to fetch from ${source.sourceName}", e)
             }
         }
-        println("All price sources failed, returning null")
+        Log.e(TAG, "All price sources failed, returning null")
         return null
     }
 

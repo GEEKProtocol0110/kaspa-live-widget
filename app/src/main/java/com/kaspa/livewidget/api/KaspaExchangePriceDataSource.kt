@@ -1,5 +1,6 @@
 package com.kaspa.livewidget.api
 
+import android.util.Log
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -22,8 +23,11 @@ class KaspaExchangePriceDataSource(
     override val sourceName: String = "KaspaExchange"
 
     companion object {
-        // Alternative endpoints that provide Kaspa price data
-        // These are examples and should be replaced with actual working endpoints
+        private const val TAG = "KaspaExchangePriceDataSource"
+        
+        // TODO: Replace these with actual working Kaspa price API endpoints
+        // These are example endpoints and may not be functional
+        // Consider using: KuCoin, Gate.io, or other exchanges with Kaspa listings
         private val FALLBACK_URLS = listOf(
             "https://api.kaspa.org/info/price",
             "https://kaspa.org/api/price"
@@ -51,7 +55,7 @@ class KaspaExchangePriceDataSource(
                 }
             } catch (e: Exception) {
                 // Continue to next URL
-                println("$sourceName: Error with $url - ${e.message}")
+                Log.w(TAG, "Error fetching from $url", e)
             }
         }
         null
@@ -62,15 +66,16 @@ class KaspaExchangePriceDataSource(
      */
     private fun parsePrice(json: String): Double? {
         return try {
-            // Try to parse as direct price object
-            val map = gson.fromJson(json, Map::class.java)
+            // Try to parse as direct price object with proper type safety
+            val map = gson.fromJson(json, Map::class.java) as? Map<*, *>
             
             // Try common field names
-            (map["price"] as? Number)?.toDouble()
-                ?: (map["usd"] as? Number)?.toDouble()
-                ?: (map["priceUsd"] as? Number)?.toDouble()
-                ?: (map["last"] as? Number)?.toDouble()
+            (map?.get("price") as? Number)?.toDouble()
+                ?: (map?.get("usd") as? Number)?.toDouble()
+                ?: (map?.get("priceUsd") as? Number)?.toDouble()
+                ?: (map?.get("last") as? Number)?.toDouble()
         } catch (e: Exception) {
+            Log.e(TAG, "Error parsing price from JSON", e)
             null
         }
     }
