@@ -1,6 +1,19 @@
+<div align="center">
+
 # Kaspa Live Widget
 
-A free Android home screen widget that displays live Kaspa network data.
+[![License](https://img.shields.io/github/license/GEEKProtocol0110/kaspa-live-widget)](LICENSE)
+[![Android](https://img.shields.io/badge/Android-8.0%2B-green.svg)](https://developer.android.com)
+[![Kotlin](https://img.shields.io/badge/Kotlin-1.8-blue.svg)](https://kotlinlang.org)
+[![Release](https://img.shields.io/github/v/release/GEEKProtocol0110/kaspa-live-widget)](https://github.com/GEEKProtocol0110/kaspa-live-widget/releases)
+
+**A free, open-source Android home screen widget that displays live Kaspa network data.**
+
+[Features](#features) • [Installation](#installation) • [Building](#building) • [Documentation](#documentation) • [Contributing](#contributing)
+
+</div>
+
+---
 
 ## Features
 
@@ -70,20 +83,63 @@ Displays:
 
 ## Installation
 
-1. Build the APK or install via Android Studio
-2. Long-press on home screen
-3. Select "Widgets"
-4. Find "Kaspa 2x2" or "Kaspa 4x2"
-5. Drag to home screen
+### Option 1: Download Release APK (Recommended)
+1. Go to [Releases](https://github.com/GEEKProtocol0110/kaspa-live-widget/releases)
+2. Download the latest `kaspa-widget-release.apk`
+3. Install on your Android device
+4. Long-press on home screen → Widgets → Select "Kaspa 2x2" or "Kaspa 4x2"
+
+### Option 2: Build from Source
+See [Building](#building) section below
 
 ## Privacy & Security
 
 - ✅ **Read-only APIs**: Only uses public APIs
 - ✅ **No Wallet**: Does not store or access any wallet data
 - ✅ **No Keys**: Does not handle private keys
-- ✅ **No Backend**: Direct API calls only
-- ✅ **No Personal Data**: Does not collect user information
+- ✅Documentation
 
+- 📖 **[Quick Start Guide](QUICKSTART.md)** - Get started in minutes
+- 📚 **[User Guide](USER_GUIDE.md)** - Comprehensive usage instructions
+- 🏗️ **[Architecture](ARCHITECTURE.md)** - Technical architecture details
+- 🎨 **[Design](DESIGN.md)** - UI/UX design specifications
+- 🔨 **[Build Guide](BUILD.md)** - Detailed build instructions
+- 🤝 **[Contributing](CONTRIBUTING.md)** - How to contribute
+
+## Contributing
+
+Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+### Roadmap
+- [ ] Settings screen for customization
+- [ ] Multiple theme options
+- [ ] Additional widget sizes
+- [ ] Configurable update intervals
+- [ ] Price alerts and notifications
+
+## Support
+
+- **Issues**: [GitHub Issues](https://github.com/GEEKProtocol0110/kaspa-live-widget/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/GEEKProtocol0110/kaspa-live-widget/discussions)
+- **Kaspa Community**: [kaspa.org](https://kaspa.org)
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Disclaimer
+
+This widget is for informational purposes only. It does not provide financial advice. Always verify critical information through official sources.
+
+---
+
+<div align="center">
+
+**Made with ❤️ for the Kaspa community**
+
+[⭐ Star this repo](https://github.com/GEEKProtocol0110/kaspa-live-widget) if you find it useful!
+
+</div>
 ## License
 
 See LICENSE file for details.
