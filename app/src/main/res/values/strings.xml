@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Kaspa Live Widget</string>
+    <string name="widget_name">Kaspa 2x2</string>
+    <string name="widget_name_large">Kaspa 4x2</string>
+    <string name="widget_description">Live Kaspa network data widget</string>
+    <string name="kaspa_label">KASPA (KAS)</string>
+    <string name="block_label">Block</string>
+    <string name="bps_label">BPS</string>
+    <string name="hashrate_label">Hashrate</string>
+</resources>
