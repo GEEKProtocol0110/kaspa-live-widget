@@ -19,7 +19,7 @@
 
 - 📱 **Two Widget Sizes**: 2x2 (quick glance) and 4x4 (command view)
 - 🎨 **Unified Design**: Kaspa mint blob background with bold black "K" on both sizes
-- 💰 **Live KAS Price**: Auto-updated USD price from CoinGecko
+- 💰 **Live KAS Price**: Auto-updated USD price from kaspa.stream with multi-source fallback
 - 📊 **Network Stats**: Block height, BPS (Blocks Per Second), and hashrate
 - ⏰ **Current Time**: Shows current time on widget
 - 🔄 **Auto Updates**: Scheduled updates every 15 minutes using WorkManager
@@ -56,8 +56,9 @@
 
 ### Data Sources
 - **Price Data**: Multiple sources with automatic fallback
-  - Primary: CoinGecko API (public, read-only)
-  - Fallback: Kaspa exchange APIs (public, read-only)
+  - Primary: kaspa.stream (public, read-only)
+  - Secondary fallback: Kaspa exchange APIs (public, read-only)
+  - Failsafe fallback: CoinGecko API (public, read-only)
 - **Network Data**: Kaspa API (public, read-only)
 - **Resilience**: Automatic failover if primary source is rate-limited or unavailable
 

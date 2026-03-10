@@ -49,8 +49,8 @@ Kaspa Live Widget is an Android home screen widget application that displays liv
 ┌────────────────────────────────────────────────────────────┐
 │                    External APIs                           │
 │  ┌──────────────────┐          ┌──────────────────┐        │
-│  │  CoinGecko API   │          │   Kaspa API      │        │
-│  │  (Price Data)    │          │  (Network Data)  │        │
+│  │ kaspa.stream +   │          │   Kaspa API      │        │
+│  │ fallback APIs    │          │  (Network Data)  │        │
 │  └──────────────────┘          └──────────────────┘        │
 └────────────────────────────────────────────────────────────┘
 ```
@@ -95,8 +95,9 @@ Kaspa Live Widget is an Android home screen widget application that displays liv
 #### PriceDataSource Interface
 - **Purpose**: Abstraction for price data providers
 - **Implementations**:
-  - `CoinGeckoPriceDataSource`: Primary source (CoinGecko API)
-  - `KaspaExchangePriceDataSource`: Fallback source
+  - `KaspaStreamPriceDataSource`: Primary source (kaspa.stream)
+  - `KaspaExchangePriceDataSource`: Secondary fallback source
+  - `CoinGeckoPriceDataSource`: Failsafe fallback source
 - **Fallback Strategy**: Tries each source in order until one succeeds
 - **Benefits**: 
   - Resilience against rate limiting
@@ -107,8 +108,9 @@ Kaspa Live Widget is an Android home screen widget application that displays liv
 - **Purpose**: Fetches data from public APIs with fallback handling
 - **APIs Used**:
   - Price: Multiple sources via PriceDataSource interface
-    - Primary: CoinGecko `https://api.coingecko.com/api/v3/simple/price`
-    - Fallback: Kaspa exchange APIs
+    - Primary: kaspa.stream
+    - Secondary fallback: Kaspa exchange APIs
+    - Failsafe fallback: CoinGecko `https://api.coingecko.com/api/v3/simple/price`
   - Kaspa Network: `https://api.kaspa.org/info/blockdag`
   - Kaspa Hashrate: `https://api.kaspa.org/info/hashrate`
 - **Technology**: OkHttp + Gson
@@ -168,7 +170,7 @@ WorkManager triggers (every 15 min)
 WidgetUpdateWorker.doWork()
     ↓
 KaspaApiService.fetchAllData()
-    ├── fetchPrice() → CoinGecko API
+  ├── fetchPrice() → kaspa.stream → exchanges → CoinGecko (fallback chain)
     ├── fetchNetworkInfo() → Kaspa API
     └── fetchHashrate() → Kaspa API
     ↓

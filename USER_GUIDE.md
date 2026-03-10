@@ -45,7 +45,7 @@
 
 The widget fetches data from public, read-only APIs:
 
-- **Price Data**: CoinGecko API (https://api.coingecko.com)
+- **Price Data**: kaspa.stream (primary) + exchange APIs (secondary fallback) + CoinGecko (failsafe)
 - **Network Data**: Kaspa.org API (https://api.kaspa.org)
 
 ## Troubleshooting

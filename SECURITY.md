@@ -49,9 +49,10 @@ The app only requires:
 ## Third-Party Services
 
 The app connects to:
-- CoinGecko API (price data)
-- KuCoin API (fallback price data)
-- Gate.io API (fallback price data)
+- kaspa.stream (primary price data)
+- KuCoin API (secondary fallback price data)
+- Gate.io API (secondary fallback price data)
+- CoinGecko API (failsafe price data)
 - Kaspa API (network data)
 
 All connections use HTTPS and are read-only.

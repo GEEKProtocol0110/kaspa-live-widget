@@ -139,7 +139,10 @@ keytool -genkey -v -keystore kaspa-widget.keystore \
 
 1. **Check API Endpoints**
    ```bash
-   # Price
+   # Price (primary)
+   curl "https://kaspa.stream/api/v1/price"
+
+   # Price (failsafe fallback)
    curl "https://api.coingecko.com/api/v3/simple/price?ids=kaspa&vs_currencies=usd"
    
    # Network Info
@@ -320,7 +323,8 @@ adb -s <device_id> install -r app-debug.apk
 - [CONTRIBUTING.md](CONTRIBUTING.md) - Contribution guidelines
 
 ### APIs
-- [CoinGecko API](https://www.coingecko.com/en/api)
+- [kaspa.stream](https://kaspa.stream/)
+- [CoinGecko API (failsafe)](https://www.coingecko.com/en/api)
 - [Kaspa Network API](https://api.kaspa.org/)
 
 ### Android Development

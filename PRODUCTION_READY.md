@@ -10,7 +10,7 @@ Your Kaspa Live Widget is now fully production-ready and deployed!
 
 ### ✅ Core Application
 - ✅ Two widget sizes (2x2 & 4x2) with live Kaspa data
-- ✅ Real-time price from CoinGecko + fallback APIs (KuCoin, Gate.io)
+- ✅ Real-time price from kaspa.stream + fallback APIs (KuCoin, Gate.io, CoinGecko failsafe)
 - ✅ Network stats: block height, BPS, hashrate
 - ✅ Auto-updates every 15 minutes via WorkManager
 - ✅ Smart caching to minimize API calls
