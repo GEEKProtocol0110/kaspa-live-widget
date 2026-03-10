@@ -17,8 +17,9 @@ import java.util.concurrent.TimeUnit
  */
 class KaspaApiService(
     private val priceSources: List<PriceDataSource> = listOf(
-        CoinGeckoPriceDataSource(),
-        KaspaExchangePriceDataSource()
+        KaspaStreamPriceDataSource(),
+        KaspaExchangePriceDataSource(),
+        CoinGeckoPriceDataSource()
     )
 ) {
 
