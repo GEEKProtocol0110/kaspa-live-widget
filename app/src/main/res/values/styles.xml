@@ -36,7 +36,7 @@
     </style>
     
     <!-- Data Panel -->
-    <style name="Widget.Kaspa.Panel">
+    <style name="Widget.Kaspa.Panel" parent="android:Widget">
         <item name="android:background">@drawable/data_panel_background</item>
         <item name="android:padding">8dp</item>
     </style>
