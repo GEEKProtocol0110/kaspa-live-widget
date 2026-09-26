@@ -13,9 +13,5 @@ data class PriceData(
 
 data class NetworkInfoResponse(
     val blockCount: Long?,
-    val difficulty: Long?,
-    val headerCount: Long?,
-    val tipHashes: List<String>?,
-    val virtualParentHashes: List<String>?,
     val virtualDaaScore: Long?
 )

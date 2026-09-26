@@ -24,6 +24,14 @@ object WorkScheduler {
     // Users concerned about battery can adjust via Android's battery optimization settings
     private const val UPDATE_INTERVAL_MINUTES = 15L
 
+    fun refreshNow(context: Context) {
+        WorkManager.getInstance(context).enqueueUniqueWork(
+            INITIAL_WORK_NAME,
+            ExistingWorkPolicy.REPLACE,
+            OneTimeWorkRequestBuilder<WidgetUpdateWorker>().build()
+        )
+    }
+
     /**
      * Schedule periodic widget updates
      */

@@ -6,6 +6,8 @@ import com.kaspa.livewidget.data.KaspaNetworkData
 import com.kaspa.livewidget.data.BlockRate
 import com.kaspa.livewidget.data.NetworkInfoResponse
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -18,15 +20,15 @@ import java.util.concurrent.TimeUnit
  */
 class KaspaApiService(
     private val priceSources: List<PriceDataSource> = listOf(
-        KaspaStreamPriceDataSource(),
-        KaspaExchangePriceDataSource(),
-        CoinGeckoPriceDataSource()
+        CoinGeckoPriceDataSource(),
+        KaspaExchangePriceDataSource()
     )
 ) {
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(10, TimeUnit.SECONDS)
         .readTimeout(10, TimeUnit.SECONDS)
+        .callTimeout(12, TimeUnit.SECONDS)
         .build()
 
     private val gson = Gson()
@@ -78,7 +80,7 @@ class KaspaApiService(
                 } else null
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.w(TAG, "Network info unavailable", e)
             null
         }
     }
@@ -104,7 +106,7 @@ class KaspaApiService(
                 } else "N/A"
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.w(TAG, "Hashrate unavailable", e)
             "N/A"
         }
     }
@@ -112,28 +114,30 @@ class KaspaApiService(
     /**
      * Fetch all Kaspa network data in one call
      */
-    suspend fun fetchAllData(previous: KaspaNetworkData?): KaspaNetworkData? = withContext(Dispatchers.IO) {
-        val price = fetchPrice()
-        val networkInfo = fetchNetworkInfo()
-        // A failed source must not replace a valid cached reading with zeroes or
-        // advance the timestamp. The worker can still show the old data as stale.
+    suspend fun fetchAllData(previous: KaspaNetworkData?): KaspaNetworkData? = coroutineScope {
+        // Independent feeds should not block each other or hide valid readings.
+        val priceRequest = async { fetchPrice() }
+        val networkRequest = async { fetchNetworkInfo() }
+        val hashRequest = async { fetchHashrate() }
+        val price = priceRequest.await()
+        val networkInfo = networkRequest.await()
         val blockCount = networkInfo?.blockCount
         val blockHeight = networkInfo?.virtualDaaScore
-        if (price == null || blockCount == null || blockCount <= 0 ||
-            blockHeight == null || blockHeight <= 0) return@withContext null
+        val networkValid = blockCount != null && blockCount > 0 && blockHeight != null && blockHeight > 0
+        if (price == null && !networkValid) return@coroutineScope null
 
-        val hashrate = fetchHashrate()
+        val hashrate = hashRequest.await()
         val timestamp = System.currentTimeMillis()
         // This is the average number of blocks per second between two API
         // snapshots, never a hard-coded claim about the current network rate.
-        val bps = BlockRate.between(previous, blockCount, timestamp)
+        val bps = if (networkValid) BlockRate.between(previous, blockCount!!, timestamp) else 0.0
 
         KaspaNetworkData(
-            price = price,
-            blockHeight = blockHeight,
+            price = price ?: 0.0,
+            blockHeight = if (networkValid) blockHeight!! else 0L,
             bps = bps,
-            hashrate = hashrate,
-            blockCount = blockCount,
+            hashrate = if (networkValid) hashrate else "N/A",
+            blockCount = if (networkValid) blockCount!! else 0L,
             timestamp = timestamp
         )
     }

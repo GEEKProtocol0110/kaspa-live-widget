@@ -5,7 +5,7 @@
     <string name="widget_name_large">Kaspa 4x4</string>
     <string name="widget_description">Live Kaspa network data widget</string>
     <string name="kaspa_label">KASPA (KAS)</string>
-    <string name="block_label">Block</string>
+    <string name="block_label">DAA</string>
     <string name="bps_label">Avg BPS</string>
     <string name="hashrate_label">Hashrate</string>
 </resources>
