@@ -39,7 +39,7 @@ jobs:
       run: ./gradlew build --stacktrace
       
     - name: Run tests
-      run: ./gradlew test --stacktrace || true
+      run: ./gradlew test --stacktrace
       
     - name: Build debug APK
       run: ./gradlew assembleDebug --stacktrace
