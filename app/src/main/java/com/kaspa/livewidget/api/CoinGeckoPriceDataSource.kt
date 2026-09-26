@@ -17,6 +17,7 @@ class CoinGeckoPriceDataSource(
     private val client: OkHttpClient = OkHttpClient.Builder()
         .connectTimeout(10, TimeUnit.SECONDS)
         .readTimeout(10, TimeUnit.SECONDS)
+        .callTimeout(12, TimeUnit.SECONDS)
         .build(),
     private val gson: Gson = Gson()
 ) : PriceDataSource {
