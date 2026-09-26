@@ -10,28 +10,25 @@ Get your Kaspa Live Widget up and running in minutes!
 
 ### Installation Steps
 
-1. **Download the APK**
-   - Get the latest release APK from the GitHub releases page
-   - Or build from source (see below)
+1. **Download the test APK**
+   - Sign in to GitHub and open the latest successful [CI run on `main`](https://github.com/GEEKProtocol0110/kaspa-live-widget/actions/workflows/ci.yml?query=branch%3Amain)
+   - Download the `debug-apk` artifact and extract its ZIP, or build from source below
+   - No signed public release has been published yet; this debug app installs separately from a release app
 
 2. **Install on Your Device**
-   ```
-   Settings → Security → Unknown Sources → Enable
-   ```
    - Tap the downloaded APK file
-   - Follow installation prompts
-   - Grant required permissions (Internet access)
+   - Allow installation from the browser or file manager when Android prompts you
 
 3. **Add Widget to Home Screen**
    - Long-press on empty area of home screen
    - Tap "Widgets"
-   - Scroll to find "Kaspa 2x2" or "Kaspa 4x2"
+   - Scroll to find "Kaspa 2x2" or "Kaspa 4x4"
    - Long-press and drag to desired location
    - Release to place
 
 4. **Wait for First Update**
    - Initial display shows "--" for data
-   - First update occurs within 15 minutes
+   - The app requests an initial update when you add a widget
    - Subsequent updates every 15 minutes
 
 ### What You'll See
@@ -41,7 +38,7 @@ Get your Kaspa Live Widget up and running in minutes!
 - KAS/USD price
 - Block height
 
-**4x2 Widget (Extended)**
+**4x4 Widget (Extended)**
 - Current time
 - KAS/USD price
 - Block height
@@ -54,7 +51,7 @@ Get your Kaspa Live Widget up and running in minutes!
 
 ### Prerequisites
 - **Android Studio** Arctic Fox or later
-- **JDK** 8 or higher (JDK 11+ recommended)
+- **JDK** 17
 - **Android SDK** with API 34
 
 ### Quick Build
@@ -84,6 +81,8 @@ cd kaspa-live-widget
 ```
 
 ### Building Release APK
+
+The repository has no configured release signing key. `assembleRelease` alone does not produce an installable public release; configure a signing key before publishing an APK or creating a release tag. Keep keystores and passwords out of Git.
 
 ```bash
 # Generate keystore (first time only)

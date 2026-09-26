@@ -5,7 +5,7 @@
 [![License](https://img.shields.io/github/license/GEEKProtocol0110/kaspa-live-widget)](LICENSE)
 [![Android](https://img.shields.io/badge/Android-8.0%2B-green.svg)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-1.8-blue.svg)](https://kotlinlang.org)
-[![Release](https://img.shields.io/github/v/release/GEEKProtocol0110/kaspa-live-widget)](https://github.com/GEEKProtocol0110/kaspa-live-widget/releases)
+[![Android CI](https://github.com/GEEKProtocol0110/kaspa-live-widget/actions/workflows/ci.yml/badge.svg)](https://github.com/GEEKProtocol0110/kaspa-live-widget/actions/workflows/ci.yml)
 
 **A free, open-source Android home screen widget that displays live Kaspa network data.**
 
@@ -17,20 +17,20 @@
 
 ## Features
 
-- 📱 **Two Widget Sizes**: 2x2 (quick glance) and 4x4 (command view)
-- 🎨 **Unified Design**: Kaspa mint blob background with bold black "K" on both sizes
+- 📱 **Two Widget Sizes**: 2x2 (quick glance) and 4x4 (expanded view)
+- 🎨 **Unified Design**: Kaspa mint background with a mirrored black K on both sizes and the app icon
 - 💰 **Live KAS Price**: Auto-updated USD price from kaspa.stream with multi-source fallback
-- 📊 **Network Stats**: Block height, BPS (Blocks Per Second), and hashrate
+- 📊 **Network Stats**: Block height, observed average BPS (after two readings), and hashrate
 - ⏰ **Current Time**: Shows current time on widget
 - 🔄 **Auto Updates**: Scheduled updates every 15 minutes using WorkManager
-- 💾 **Smart Caching**: Caches data to reduce API calls
+- 💾 **Honest Freshness**: Keeps the last good reading and marks it stale when updates stop
 - 🎨 **Clean Design**: Dark translucent data panels over Kaspa brand visuals
 
 ## Widget Layouts
 
 ### 2x2 Widget (Quick Glance)
 **Purpose**: Minimal information at a glance
-- Kaspa logo blob (mint) background with centered black "K"
+- Kaspa mint background with a centered mirrored K
 - Current time (top)
 - KAS price (center focus, in dark panel)
 - Block height (bottom panel)
@@ -38,9 +38,9 @@
 
 ### 4x4 Widget (Command View)
 **Purpose**: Expanded view with more breathing room
-- Same Kaspa blob background and black "K" (feels like unlocking more info)
+- Same Kaspa mint background and mirrored K
 - Time + "Last updated" indicator (top row)
-- Expanded KAS price with 24h change (center)
+- Expanded KAS price (center); the 24h change field is currently a placeholder
 - Block height + BPS (middle row, side-by-side panels)
 - Network hashrate (bottom panel)
 - More space, not more noise
@@ -64,7 +64,7 @@
 
 ### Key Components
 - `KaspaWidgetProvider`: 2x2 widget provider
-- `KaspaWidgetLargeProvider`: 4x2 widget provider
+- `KaspaWidgetLargeProvider`: 4x4 widget provider
 - `WidgetUpdateWorker`: Background worker for scheduled updates
 - `KaspaApiService`: API client for fetching Kaspa data
 - `DataCache`: Caching layer using SharedPreferences
@@ -73,7 +73,7 @@
 
 ### Prerequisites
 - Android Studio Arctic Fox or later
-- JDK 8 or later
+- JDK 17
 - Android SDK with API 34
 
 ### Build Steps
@@ -88,21 +88,22 @@
 
 ## Installation
 
-### Option 1: Download Release APK (Recommended)
-1. Go to [Releases](https://github.com/GEEKProtocol0110/kaspa-live-widget/releases)
-2. Download the latest `kaspa-widget-release.apk`
-3. Install on your Android device
-4. Long-press on home screen → Widgets → Select "Kaspa 2x2" or "Kaspa 4x2"
+**No signed public release has been published yet.** The green CI badge means the source builds; it is not an app download.
 
-### Option 2: Build from Source
-See [Building](#building) section below
+### Test the latest build on Android
+1. Sign in to GitHub and open the latest successful [CI run on `main`](https://github.com/GEEKProtocol0110/kaspa-live-widget/actions/workflows/ci.yml?query=branch%3Amain).
+2. Under **Artifacts**, download `debug-apk` and extract the ZIP.
+3. Open the APK on your phone and allow installation from your browser or file manager when Android asks.
+4. Long-press the home screen → **Widgets** → add **Kaspa 2x2** or **Kaspa 4x4**.
+
+The CI artifact expires after seven days. This is a separate debug app and will not replace an existing release installation. For a lasting build, [build from source](#building). A signed release will be linked from [Releases](https://github.com/GEEKProtocol0110/kaspa-live-widget/releases) when one exists.
 
 ## Privacy & Security
 
 - ✅ **Read-only APIs**: Only uses public APIs
 - ✅ **No Wallet**: Does not store or access any wallet data
 - ✅ **No Keys**: Does not handle private keys
-- ✅Documentation
+## Documentation
 
 - 📖 **[Quick Start Guide](QUICKSTART.md)** - Get started in minutes
 - 📚 **[User Guide](USER_GUIDE.md)** - Comprehensive usage instructions
@@ -130,7 +131,7 @@ Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for gu
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under Apache 2.0; see [LICENSE](LICENSE).
 
 ## Disclaimer
 
@@ -145,6 +146,3 @@ This widget is for informational purposes only. It does not provide financial ad
 [⭐ Star this repo](https://github.com/GEEKProtocol0110/kaspa-live-widget) if you find it useful!
 
 </div>
-## License
-
-See LICENSE file for details.

@@ -105,6 +105,8 @@ keyPassword=YOUR_KEY_PASSWORD
 
 ### 3. Build Release
 
+Release signing is not currently wired into the Gradle build. Store your keystore and passwords securely and add a release signing configuration before shipping; `assembleRelease` alone may produce an unsigned APK that cannot be installed.
+
 ```bash
 ./gradlew assembleRelease
 ```
