@@ -12,5 +12,5 @@
         android:pathData="M54,8 C79,8 100,29 100,54 C100,79 79,100 54,100 C29,100 8,79 8,54 C8,29 29,8 54,8 Z" />
     <path
         android:fillColor="@color/kaspa_black"
-        android:pathData="M39,28 L39,80 L48,80 L48,58 L68,80 L81,80 L56,52 L78,28 L65,28 L48,47 L48,28 Z" />
+        android:pathData="M69,28 L69,80 L60,80 L60,58 L40,80 L27,80 L52,52 L30,28 L43,28 L60,47 L60,28 Z" />
 </vector>
