@@ -5,17 +5,14 @@
     android:layout_height="match_parent"
     android:background="@drawable/kaspa_blob_background">
 
-    <!-- Centered Kaspa "K" - Same as 2x2 but larger -->
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="K"
-        android:textSize="180sp"
-        android:textStyle="bold"
-        android:textColor="@color/kaspa_black"
+    <!-- Centered mirrored Kaspa mark, larger than the 2x2 version -->
+    <ImageView
+        android:layout_width="180dp"
+        android:layout_height="180dp"
+        android:src="@drawable/kaspa_mark"
+        android:contentDescription="@null"
         android:alpha="0.12"
-        android:layout_gravity="center"
-        android:fontFamily="sans-serif-black" />
+        android:layout_gravity="center" />
 
     <!-- Data Overlay Container - More Breathing Room -->
     <LinearLayout
