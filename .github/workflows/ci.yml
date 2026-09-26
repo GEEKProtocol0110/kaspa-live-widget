@@ -21,14 +21,9 @@ jobs:
         distribution: 'temurin'
         cache: gradle
     
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
-      with:
-        cmdline-tools-version: 9477386
-        
     - name: Configure Android SDK
       run: |
-        echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
+        echo "sdk.dir=$ANDROID_HOME" > local.properties
         yes | sdkmanager --licenses
         sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
       
