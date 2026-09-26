@@ -3,6 +3,7 @@ package com.kaspa.livewidget.api
 import android.util.Log
 import com.google.gson.Gson
 import com.kaspa.livewidget.data.KaspaNetworkData
+import com.kaspa.livewidget.data.BlockRate
 import com.kaspa.livewidget.data.NetworkInfoResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -37,8 +38,6 @@ class KaspaApiService(
         private const val KASPA_BLOCKDAG_URL = "https://api.kaspa.org/info/blockdag"
         private const val KASPA_HASHRATE_URL = "https://api.kaspa.org/info/hashrate"
         
-        // Kaspa generates approximately 1 block per second on average
-        private const val DEFAULT_BPS = 1.0
     }
 
     /**
@@ -49,7 +48,7 @@ class KaspaApiService(
         for (source in priceSources) {
             try {
                 val price = source.fetchPrice()
-                if (price != null && price > 0) {
+                if (price != null && price.isFinite() && price > 0) {
                     Log.d(TAG, "Successfully fetched price from ${source.sourceName}: $$price")
                     return price
                 }
@@ -113,20 +112,29 @@ class KaspaApiService(
     /**
      * Fetch all Kaspa network data in one call
      */
-    suspend fun fetchAllData(): KaspaNetworkData = withContext(Dispatchers.IO) {
-        val price = fetchPrice() ?: 0.0
+    suspend fun fetchAllData(previous: KaspaNetworkData?): KaspaNetworkData? = withContext(Dispatchers.IO) {
+        val price = fetchPrice()
         val networkInfo = fetchNetworkInfo()
+        // A failed source must not replace a valid cached reading with zeroes or
+        // advance the timestamp. The worker can still show the old data as stale.
+        val blockCount = networkInfo?.blockCount
+        val blockHeight = networkInfo?.virtualDaaScore
+        if (price == null || blockCount == null || blockCount <= 0 ||
+            blockHeight == null || blockHeight <= 0) return@withContext null
+
         val hashrate = fetchHashrate()
-        
-        // Calculate BPS (blocks per second) from block height changes
-        val blockHeight = networkInfo?.virtualDaaScore ?: 0L
-        
+        val timestamp = System.currentTimeMillis()
+        // This is the average number of blocks per second between two API
+        // snapshots, never a hard-coded claim about the current network rate.
+        val bps = BlockRate.between(previous, blockCount, timestamp)
+
         KaspaNetworkData(
             price = price,
             blockHeight = blockHeight,
-            bps = DEFAULT_BPS, // Kaspa generates ~1 block per second on average
+            bps = bps,
             hashrate = hashrate,
-            timestamp = System.currentTimeMillis()
+            blockCount = blockCount,
+            timestamp = timestamp
         )
     }
 
