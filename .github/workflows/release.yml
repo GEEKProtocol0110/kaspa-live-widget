@@ -23,28 +23,26 @@ jobs:
         cache: gradle
     
     - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
+      uses: android-actions/setup-android@v4
       with:
-        cmdline-tools-version: 9477386
-        
-    - name: Set environment variables
-      run: |
-        echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
-        echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+        packages: 'platform-tools platforms;android-34 build-tools;34.0.0'
         
     - name: Create local.properties
       run: echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
-        
-    - name: Accept licenses and install components
-      run: |
-        yes | sdkmanager --licenses || echo "Licenses accepted"
-        sdkmanager --install "platform-tools" "platforms;android-34" "build-tools;34.0.0"
         
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
       
     - name: Build release APK
       run: ./gradlew assembleRelease --stacktrace
+
+    - name: Require signed release APK
+      run: |
+        apk=$(find app/build/outputs/apk/release -maxdepth 1 -name '*.apk' -print -quit)
+        if [ -z "$apk" ] || ! "$ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner" verify "$apk"; then
+          echo '::error::No signed release APK is available. Configure release signing before publishing.'
+          exit 1
+        fi
       
     - name: Get version from tag
       id: version
