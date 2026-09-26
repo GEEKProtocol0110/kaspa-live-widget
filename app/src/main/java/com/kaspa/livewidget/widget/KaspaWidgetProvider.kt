@@ -37,7 +37,7 @@ class KaspaWidgetProvider : AppWidgetProvider() {
 
     override fun onDisabled(context: Context) {
         // Last widget removed, cancel updates
-        WorkScheduler.cancelWidgetUpdates(context)
+        WorkScheduler.cancelWidgetUpdatesIfUnused(context)
     }
 
     companion object {
@@ -47,7 +47,7 @@ class KaspaWidgetProvider : AppWidgetProvider() {
             appWidgetIds: IntArray
         ) {
             val cache = DataCache(context)
-            val data = cache.getValidCachedData() ?: KaspaNetworkData()
+            val data = cache.getCachedData() ?: KaspaNetworkData()
 
             for (appWidgetId in appWidgetIds) {
                 updateAppWidget(context, appWidgetManager, appWidgetId, data)
@@ -65,6 +65,7 @@ class KaspaWidgetProvider : AppWidgetProvider() {
             // Update time
             val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
             views.setTextViewText(R.id.widget_time, timeFormat.format(Date()))
+            views.setTextViewText(R.id.widget_updated, WidgetFreshness.label(data.timestamp))
 
             // Update price
             val priceText = if (data.price > 0) {

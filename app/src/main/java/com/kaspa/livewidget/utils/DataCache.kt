@@ -23,7 +23,6 @@ class DataCache(context: Context) {
     fun saveData(data: KaspaNetworkData) {
         prefs.edit().apply {
             putString(KEY_CACHED_DATA, gson.toJson(data))
-            putLong(KEY_LAST_UPDATE, System.currentTimeMillis())
             apply()
         }
     }
@@ -40,27 +39,8 @@ class DataCache(context: Context) {
         }
     }
 
-    /**
-     * Check if cached data is still valid
-     */
-    fun isCacheValid(): Boolean {
-        val lastUpdate = prefs.getLong(KEY_LAST_UPDATE, 0)
-        val currentTime = System.currentTimeMillis()
-        return (currentTime - lastUpdate) < CACHE_VALIDITY_MS
-    }
-
-    /**
-     * Get data from cache if valid, otherwise return null
-     */
-    fun getValidCachedData(): KaspaNetworkData? {
-        return if (isCacheValid()) getCachedData() else null
-    }
-
     companion object {
         private const val CACHE_PREFS_NAME = "kaspa_widget_cache"
         private const val KEY_CACHED_DATA = "cached_data"
-        private const val KEY_LAST_UPDATE = "last_update"
-        // Cache validity set to slightly less than update interval (15 min) to ensure fresh data
-        private const val CACHE_VALIDITY_MS = 14 * 60 * 1000L // 14 minutes
     }
 }

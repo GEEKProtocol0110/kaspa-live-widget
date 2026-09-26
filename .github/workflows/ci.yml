@@ -20,17 +20,14 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
         cache: gradle
-    
+
     - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
+      uses: android-actions/setup-android@v4
       with:
-        cmdline-tools-version: 9477386
-        
+        packages: 'platform-tools platforms;android-34 build-tools;34.0.0'
+    
     - name: Configure Android SDK
-      run: |
-        echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
-        yes | sdkmanager --licenses
-        sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+      run: echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
       
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
@@ -39,7 +36,7 @@ jobs:
       run: ./gradlew build --stacktrace
       
     - name: Run tests
-      run: ./gradlew test --stacktrace || true
+      run: ./gradlew test --stacktrace
       
     - name: Build debug APK
       run: ./gradlew assembleDebug --stacktrace

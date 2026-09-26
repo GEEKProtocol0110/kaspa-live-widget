@@ -8,5 +8,7 @@ data class KaspaNetworkData(
     val blockHeight: Long = 0L,
     val bps: Double = 0.0,
     val hashrate: String = "N/A",
-    val timestamp: Long = System.currentTimeMillis()
+    // Cumulative count lets us calculate an average across successful snapshots.
+    val blockCount: Long = 0L,
+    val timestamp: Long = 0L
 )

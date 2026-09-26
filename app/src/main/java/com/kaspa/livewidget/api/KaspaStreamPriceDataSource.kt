@@ -49,14 +49,14 @@ class KaspaStreamPriceDataSource(
                     .build()
 
                 client.newCall(request).execute().use { response ->
-                    if (!response.isSuccessful) {
-                        continue
-                    }
-
-                    val body = response.body?.string() ?: continue
-                    val parsed = parsePrice(body)
-                    if (parsed != null && parsed > 0) {
-                        return@withContext parsed
+                    if (response.isSuccessful) {
+                        val body = response.body?.string()
+                        if (body != null) {
+                            val parsed = parsePrice(body)
+                            if (parsed != null && parsed > 0) {
+                                return@withContext parsed
+                            }
+                        }
                     }
                 }
             } catch (e: Exception) {

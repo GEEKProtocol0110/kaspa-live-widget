@@ -25,15 +25,14 @@ class WidgetUpdateWorker(
     override suspend fun doWork(): Result {
         return try {
             // Fetch latest data from API
-            val data = apiService.fetchAllData()
+            val data = apiService.fetchAllData(cache.getCachedData())
             
-            // Save to cache
-            cache.saveData(data)
+            if (data != null) cache.saveData(data)
             
             // Update all widget instances
             updateWidgets()
             
-            Result.success()
+            if (data == null) Result.retry() else Result.success()
         } catch (e: Exception) {
             e.printStackTrace()
             Result.retry()
