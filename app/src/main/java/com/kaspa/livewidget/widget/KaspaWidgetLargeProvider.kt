@@ -16,7 +16,7 @@ import java.util.Locale
 
 /**
  * Widget provider for 4x4 Kaspa widget
- * Displays time, last updated, expanded price with 24h change, block height, BPS, and hashrate
+ * Displays time, last updated, price, DAA score, observed BPS, and hashrate
  */
 class KaspaWidgetLargeProvider : AppWidgetProvider() {
 
@@ -89,9 +89,6 @@ class KaspaWidgetLargeProvider : AppWidgetProvider() {
                 "$--"
             }
             views.setTextViewText(R.id.widget_price, priceText)
-
-            // Update 24h price change (placeholder for now)
-            views.setTextViewText(R.id.widget_price_change, "24h: --")
 
             // Update block height
             val blockHeightText = if (data.blockHeight > 0) {
