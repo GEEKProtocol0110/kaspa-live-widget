@@ -4,6 +4,7 @@ import android.util.Log
 import com.google.gson.Gson
 import com.kaspa.livewidget.data.KaspaNetworkData
 import com.kaspa.livewidget.data.BlockRate
+import com.kaspa.livewidget.data.HashrateFormatter
 import com.kaspa.livewidget.data.NetworkInfoResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -87,7 +88,7 @@ class KaspaApiService(
 
     /**
      * Fetch hashrate information
-     * This is a simplified version - can be enhanced with actual hashrate API
+     * Kaspa REST /info/hashrate returns TH/s; convert to display units.
      */
     suspend fun fetchHashrate(): String = withContext(Dispatchers.IO) {
         try {
@@ -101,7 +102,7 @@ class KaspaApiService(
                     response.body?.string()?.let { body ->
                         // Parse hashrate from response
                         val hashrate = gson.fromJson(body, Map::class.java)
-                        formatHashrate(hashrate["hashrate"] as? Double ?: 0.0)
+                        HashrateFormatter.formatThPerSecond(hashrate["hashrate"] as? Double)
                     } ?: "N/A"
                 } else "N/A"
             }
@@ -142,12 +143,4 @@ class KaspaApiService(
         )
     }
 
-    private fun formatHashrate(hashrate: Double): String {
-        return when {
-            hashrate >= 1_000_000_000_000 -> String.format("%.2f PH/s", hashrate / 1_000_000_000_000)
-            hashrate >= 1_000_000_000 -> String.format("%.2f TH/s", hashrate / 1_000_000_000)
-            hashrate >= 1_000_000 -> String.format("%.2f GH/s", hashrate / 1_000_000)
-            else -> String.format("%.2f MH/s", hashrate / 1_000)
-        }
-    }
 }
