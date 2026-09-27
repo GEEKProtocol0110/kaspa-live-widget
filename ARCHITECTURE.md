@@ -221,7 +221,7 @@ Widget display refreshed on home screen
 - Note: Can be enhanced with historical calculation
 
 ### Hashrate Display
-- Format: Auto-scaled (PH/s, TH/s, GH/s, MH/s)
+- API unit: TH/s; display is scaled to TH/s, PH/s, or EH/s
 - Fallback: `N/A` (no data)
 - Example: `156.23 PH/s`
 

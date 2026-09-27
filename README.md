@@ -19,8 +19,8 @@
 
 - 📱 **Two Widget Sizes**: 2x2 (quick glance) and 4x4 (expanded view)
 - 🎨 **Unified Design**: Kaspa mint background with a mirrored black K on both sizes and the app icon
-- 💰 **Live KAS Price**: Auto-updated USD price from kaspa.stream with multi-source fallback
-- 📊 **Network Stats**: Block height, observed average BPS (after two readings), and hashrate
+- 💰 **Live KAS Price**: Auto-updated USD price from CoinGecko with exchange fallback
+- 📊 **Network Stats**: DAA score, observed average BPS (after two readings), and hashrate in TH/s, PH/s, or EH/s
 - ⏰ **Current Time**: Shows current time on widget
 - 🔄 **Auto Updates**: Scheduled updates every 15 minutes using WorkManager
 - 💾 **Honest Freshness**: Keeps the last good reading and marks it stale when updates stop
@@ -30,18 +30,18 @@
 
 ### 2x2 Widget (Quick Glance)
 **Purpose**: Minimal information at a glance
-- Kaspa mint background with a centered mirrored K
+- Dark background with a centered mint mirrored K
 - Current time (top)
 - KAS price (center focus, in dark panel)
-- Block height (bottom panel)
+- DAA score (bottom panel)
 - No clutter, maximum clarity
 
 ### 4x4 Widget (Command View)
 **Purpose**: Expanded view with more breathing room
-- Same Kaspa mint background and mirrored K
+- Same dark background and mirrored K
 - Time + "Last updated" indicator (top row)
-- Expanded KAS price (center); the 24h change field is currently a placeholder
-- Block height + BPS (middle row, side-by-side panels)
+- Expanded KAS price (center)
+- DAA score + observed BPS (middle row, side-by-side panels)
 - Network hashrate (bottom panel)
 - More space, not more noise
 
