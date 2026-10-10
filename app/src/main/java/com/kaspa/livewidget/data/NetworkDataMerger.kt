@@ -7,7 +7,9 @@ internal object NetworkDataMerger {
         price: Double?,
         network: NetworkInfoResponse?,
         hashrate: String,
-        now: Long
+        now: Long,
+        networkSource: String = "",
+        hashrateSource: String = ""
     ): KaspaNetworkData? {
         val priceValid = price != null && price.isFinite() && price > 0.0
         val networkValid = (network?.blockCount ?: 0L) > 0L &&
@@ -22,12 +24,17 @@ internal object NetworkDataMerger {
             price = if (priceValid) price!! else old.price,
             blockHeight = if (networkValid) network!!.virtualDaaScore!! else old.blockHeight,
             blockCount = if (networkValid) network!!.blockCount!! else old.blockCount,
-            bps = if (networkValid) BlockRate.between(previous, network!!.blockCount!!, now) else old.bps,
+            bps = if (networkValid) {
+                if (networkSource != old.networkSource) 0.0
+                else BlockRate.between(previous, network!!.blockCount!!, now)
+            } else old.bps,
             hashrate = if (hashValid) hashrate else old.hashrate,
             timestamp = now,
             priceTimestamp = if (priceValid) now else priorTime(old.priceTimestamp),
             networkTimestamp = if (networkValid) now else priorTime(old.networkTimestamp),
-            hashrateTimestamp = if (hashValid) now else priorTime(old.hashrateTimestamp)
+            hashrateTimestamp = if (hashValid) now else priorTime(old.hashrateTimestamp),
+            networkSource = if (networkValid) networkSource else old.networkSource,
+            hashrateSource = if (hashValid) hashrateSource else old.hashrateSource
         )
     }
 }

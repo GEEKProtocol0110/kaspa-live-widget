@@ -1,71 +1,66 @@
 package com.kaspa.livewidget.worker
 
-import android.appwidget.AppWidgetManager
-import android.content.ComponentName
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.kaspa.livewidget.api.KaspaApiService
+import com.kaspa.livewidget.api.MarketDataSource
+import com.kaspa.livewidget.data.MarketDataMerger
+import com.kaspa.livewidget.data.NetworkDataMerger
+import com.kaspa.livewidget.utils.*
+import com.kaspa.livewidget.widget.WidgetRenderer
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import com.kaspa.livewidget.api.KaspaApiService
-import com.kaspa.livewidget.utils.DataCache
-import com.kaspa.livewidget.widget.KaspaWidgetProvider
-import com.kaspa.livewidget.widget.KaspaWidgetLargeProvider
 
-/**
- * Worker for updating widget data in the background
- * Scheduled by WorkManager approximately every 15 minutes
- */
-class WidgetUpdateWorker(
-    context: Context,
-    params: WorkerParameters
-) : CoroutineWorker(context, params) {
-
-    private val apiService = KaspaApiService()
-    private val cache = DataCache(context)
-
-    companion object {
-        // Periodic and manual work use different names. Keep their read/merge/save
-        // cycles ordered so a slower refresh cannot overwrite newer cached data.
-        private val refreshMutex = Mutex()
-    }
+class WidgetUpdateWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
+    companion object { private val refreshMutex = Mutex() }
 
     override suspend fun doWork(): Result = refreshMutex.withLock {
+        val context = applicationContext
+        val settings = WidgetSettings(context).get()
+        val status = RefreshStatusCache(context)
+        status.set("running", settings.currency)
+        WidgetRenderer.updateAll(context)
         try {
-            // Fetch latest data from API
-            val data = apiService.fetchAllData(cache.getCachedData())
-            
-            if (data != null) cache.saveData(data)
-            
-            // Update all widget instances
-            updateWidgets()
-            
-            // An outage is a completed attempt, not an unfinished refresh. KEEP
-            // must release this job so the next tap can try immediately instead
-            // of waiting through WorkManager retry backoff. Periodic work remains.
+            coroutineScope {
+                val now = System.currentTimeMillis()
+                val marketCache = MarketCache(context)
+                val networkCache = DataCache(context)
+                val oldMarket = marketCache.get(settings.currency)
+                val source = MarketDataSource()
+                val quote = async { source.quote(settings.currency, now) }
+                val history = async {
+                    if (settings.showChart && (oldMarket.history.isEmpty() || now - oldMarket.historyTimestamp >= 3_600_000L))
+                        source.history(settings.currency, now) else null
+                }
+                val feeds = async { KaspaApiService().fetchFeeds() }
+                val newQuote = quote.await()
+                val newHistory = history.await()
+                val network = feeds.await()
+                val market = MarketDataMerger.merge(oldMarket, settings.currency, newQuote, newHistory, now)
+                marketCache.save(market)
+                val merged = NetworkDataMerger.merge(networkCache.getCachedData(),
+                    if (settings.currency == "USD") newQuote?.price else null,
+                    network.network, network.hashrate, System.currentTimeMillis(),
+                    network.networkSource, network.hashrateSource)
+                if (merged != null) networkCache.saveData(merged)
+                val successes = listOf(newQuote != null, network.network != null, network.hashrate != "N/A")
+                status.set(if (successes.all { it }) "complete" else if (successes.any { it }) "partial" else "unavailable", settings.currency)
+            }
+            WidgetRenderer.updateAll(context)
+            // Completed outages release manual KEEP work so the next tap can retry.
             Result.success()
         } catch (e: CancellationException) {
+            status.set("interrupted", settings.currency)
+            WidgetRenderer.updateAll(context)
             throw e
         } catch (e: Exception) {
-            e.printStackTrace()
+            status.set("unavailable", settings.currency)
+            WidgetRenderer.updateAll(context)
             Result.failure()
         }
-    }
-
-    private fun updateWidgets() {
-        val appWidgetManager = AppWidgetManager.getInstance(applicationContext)
-        
-        // Update 2x2 widgets
-        val widgetIds = appWidgetManager.getAppWidgetIds(
-            ComponentName(applicationContext, KaspaWidgetProvider::class.java)
-        )
-        KaspaWidgetProvider.updateAllWidgets(applicationContext, appWidgetManager, widgetIds)
-        
-        // Update 4x4 widgets
-        val largeWidgetIds = appWidgetManager.getAppWidgetIds(
-            ComponentName(applicationContext, KaspaWidgetLargeProvider::class.java)
-        )
-        KaspaWidgetLargeProvider.updateAllWidgets(applicationContext, appWidgetManager, largeWidgetIds)
     }
 }

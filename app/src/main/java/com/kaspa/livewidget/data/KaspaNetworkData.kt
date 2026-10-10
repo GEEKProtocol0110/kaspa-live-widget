@@ -15,5 +15,7 @@ data class KaspaNetworkData(
     // Zero means a pre-upgrade cache; fall back to its original snapshot timestamp.
     val priceTimestamp: Long = 0L,
     val networkTimestamp: Long = 0L,
-    val hashrateTimestamp: Long = 0L
+    val hashrateTimestamp: Long = 0L,
+    val networkSource: String = "",
+    val hashrateSource: String = ""
 )

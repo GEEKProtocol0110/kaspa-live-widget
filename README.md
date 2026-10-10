@@ -19,12 +19,22 @@
 
 - 📱 **Two Widget Sizes**: 2x2 (quick glance) and 4x4 (expanded view)
 - 🎨 **Unified Design**: Kaspa mint background with a mirrored black K on both sizes and the app icon
-- 💰 **Live KAS Price**: Auto-updated USD price from CoinGecko with exchange fallback
+- 💰 **Live KAS Price**: USD, EUR or GBP with real 24-hour change; CoinGecko plus a USD-only exchange fallback
 - 📊 **Network Stats**: DAA score, observed average BPS (after two readings), and hashrate in TH/s, PH/s, or EH/s
 - ⏰ **Current Time**: Launcher-driven clock follows your phone’s 12/24-hour preference
-- 🔄 **Auto Updates**: Scheduled updates every 15 minutes using WorkManager
+- 🔄 **Auto Updates**: Choose 15, 30 or 60 minutes using WorkManager; tap for visible refresh feedback
 - 💾 **Honest Freshness**: Keeps each feed’s last good reading and timestamp during partial outages; labels stale price, network, and hashrate readings
 - 🎨 **Clean Design**: Dark translucent data panels over Kaspa brand visuals
+
+## Setup and price history
+
+Open the Kaspa Live Widget app icon or tap **Setup** on a widget. Add either size, choose USD/EUR/GBP, a 15/30/60-minute refresh interval, dark/light appearance and optional 24-hour chart, then tap **Apply settings**. These settings apply to every instance. If your launcher does not support the Add widget buttons, long-press your home screen and use its Widgets menu.
+
+Tap the widget or **Refresh now** for queued/running/completed/partial-failure feedback. Repeated taps share an unfinished request. Failed feeds keep their last successful timestamps. A currency switch never relabels a cached dollar value as euros or pounds. Exchange fallback is KAS/USDT (approximately USD) and cannot fill EUR/GBP. A price-only source shows “24h change unavailable” instead of attaching an old change percentage.
+
+Chart points come from CoinGecko’s real 24-hour series, refreshed at most once per hour when enabled. Missing data shows unavailable; old series remain labelled stale. The chart is visible in the app and in expanded widgets resized to at least 380dp high. Smaller layouts retain the price/change and network readings.
+
+See [SIGNED_RELEASES.md](SIGNED_RELEASES.md) for the prepared permanent-download workflow and required one-time owner signing setup. A signed public release still requires that setup and a reviewed release tag.
 
 ## Widget Layouts
 
@@ -52,14 +62,14 @@
 - **Min SDK**: 26 (Android 8.0)
 - **Target SDK**: 34 (Android 14)
 - **Update Mechanism**: AppWidgetProvider + WorkManager
-- **Update Interval**: Approximately 15 minutes; Android can defer background work
+- **Update Interval**: 15, 30 or 60 minutes; Android can defer background work
 - **Manual Refresh**: Tap either widget; repeated taps share an unfinished request
 
 ### Data Sources
 - **Price Data**: Multiple sources with automatic fallback
   - Primary: CoinGecko KAS/USD (public, read-only)
   - Fallback: KuCoin and Gate KAS/USDT tickers (public, read-only; a USD approximation)
-- **Network Data**: Kaspa API (public, read-only)
+- **Network Data**: Kaspa REST with a synced-mainnet JSON-wRPC fallback resolved through public Kaspa resolver nodes (public, read-only)
 - **Resilience**: Automatic failover if primary source is rate-limited or unavailable
 
 ### Key Components
@@ -117,10 +127,10 @@ The CI artifact expires after seven days. This is a separate debug app and will 
 Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ### Roadmap
-- [ ] Settings screen for customization
-- [ ] Multiple theme options
+- [x] Setup/settings screen with widget installation help
+- [x] Dark and light appearance
 - [ ] Additional widget sizes
-- [ ] Configurable update intervals
+- [x] Configurable update intervals
 - [ ] Price alerts and notifications
 
 ## Support

@@ -1,97 +1,22 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- 2x2 Kaspa Widget: Quick Glance View -->
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/widget_root"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@drawable/widget_background"
-    android:contentDescription="@string/refresh_hint">
-
-    <!-- Centered mirrored Kaspa mark -->
-    <ImageView
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:src="@drawable/kaspa_mark"
-        android:contentDescription="@null"
-        android:alpha="0.55"
-        android:layout_gravity="center" />
-
-    <!-- Data Overlay Container -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:padding="8dp">
-
-        <!-- Time - Top -->
-        <TextClock
-            android:id="@+id/widget_time"
-            style="@style/Widget.Kaspa.Text.Time"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="start"
-            android:layout_marginBottom="4dp" />
-
-        <TextView
-            android:id="@+id/widget_updated"
-            style="@style/Widget.Kaspa.Text.Label"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/waiting_for_data"
-            android:layout_marginBottom="4dp" />
-
-        <!-- Spacer to push price to center -->
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
-
-        <!-- KAS Price - Center Focus -->
-        <LinearLayout
-            style="@style/Widget.Kaspa.Panel"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:layout_marginBottom="4dp">
-
-            <TextView
-                android:id="@+id/widget_price"
-                style="@style/Widget.Kaspa.Text.Price"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:text="$--" />
-
+<?xml version="1.0" ?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/widget_root" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@drawable/widget_background" android:contentDescription="@string/refresh_hint">
+    <ImageView android:layout_width="120dp" android:layout_height="120dp" android:layout_gravity="center" android:src="@drawable/kaspa_mark" android:alpha="0.40" android:contentDescription="@null"/>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:padding="6dp">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+            <TextClock android:id="@+id/widget_time" style="@style/Widget.Kaspa.Text.Time" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
+            <TextView android:id="@+id/widget_settings" style="@style/Widget.Kaspa.Text.Label" android:layout_width="48dp" android:layout_height="24dp" android:gravity="center" android:text="Setup" android:contentDescription="Open widget settings"/>
         </LinearLayout>
-
-        <!-- Block Height - Bottom -->
-        <LinearLayout
-            style="@style/Widget.Kaspa.Panel"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:paddingTop="4dp"
-            android:paddingBottom="4dp">
-
-            <TextView
-                style="@style/Widget.Kaspa.Text.Label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/block_label"
-                android:layout_marginEnd="6dp" />
-
-            <TextView
-                android:id="@+id/widget_block_height"
-                style="@style/Widget.Kaspa.Text.Value"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:text="--" />
+        <TextView android:id="@+id/widget_updated" style="@style/Widget.Kaspa.Text.Label" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Waiting for data"/>
+        <TextView android:id="@+id/widget_status" style="@style/Widget.Kaspa.Text.Label" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Tap to refresh"/>
+        <ProgressBar android:id="@+id/widget_progress" style="?android:attr/progressBarStyleHorizontal" android:layout_width="match_parent" android:layout_height="2dp" android:indeterminate="true" android:visibility="gone"/>
+        <TextView android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1"/>
+        <LinearLayout android:id="@+id/price_panel" style="@style/Widget.Kaspa.Panel" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="2dp">
+            <TextView android:id="@+id/widget_price" style="@style/Widget.Kaspa.Text.Price" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="USD --" android:gravity="center"/>
+            <TextView android:id="@+id/widget_change" style="@style/Widget.Kaspa.Text.Label" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="24h change unavailable" android:gravity="center"/>
         </LinearLayout>
-
+        <LinearLayout android:id="@+id/network_panel" style="@style/Widget.Kaspa.Panel" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:orientation="vertical" android:padding="2dp">
+            <TextView android:id="@+id/network_panel_label" style="@style/Widget.Kaspa.Text.Label" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="DAA score"/>
+            <TextView android:id="@+id/widget_block_height" style="@style/Widget.Kaspa.Text.Value" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="--"/>
+        </LinearLayout>
     </LinearLayout>
-
 </FrameLayout>

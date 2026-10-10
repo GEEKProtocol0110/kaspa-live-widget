@@ -3,7 +3,7 @@
 ## Installation
 
 1. Install the APK on your Android device (minimum Android 8.0)
-2. The app will not show up in your app drawer as it's a widget-only app
+2. Open **Kaspa Live Widget** in your app drawer for installation help and settings
 
 ## Adding the Widget to Your Home Screen
 
@@ -21,23 +21,33 @@
 4. Long-press and drag it to your desired location
 5. Release to place
 
+## Settings, refresh and chart
+
+Open the app or tap **Setup** on a widget. Use **Add compact widget** or **Add expanded widget**, or your launcher’s Widgets menu. Choose currency, refresh interval, dark/light appearance and optional 24-hour chart, then tap **Apply settings**. Choices apply to all your Kaspa widgets.
+
+Tap the widget or **Refresh now** to see queued/running/completed status. Partial and failed updates keep cached readings with their original times. Switching currency shows that currency’s own cache or a placeholder while loading; it never relabels a dollar price as euros.
+
+The chart uses actual CoinGecko observations. It appears in the app and on expanded widgets at least 380dp high; resize the widget if it is hidden. Unavailable series show a message. Cached charts older than an hour show stale. Price/network readings older than 30 minutes show stale even when you select a 60-minute refresh interval.
+
+Use **Downloads and release notes** to open GitHub Releases. Public signed releases require the owner’s one-time setup in [SIGNED_RELEASES.md](SIGNED_RELEASES.md). After the first signed release, newer release APKs update the existing app and preserve settings. Debug CI builds are a separate test app.
+
 ## Widget Information
 
 ### 2x2 Widget Displays:
 - Current time (updates independently of network refreshes and follows your phone’s 12/24-hour preference)
-- KAS/USD price
+- KAS price in your selected USD/EUR/GBP currency, plus real 24-hour change
 - Current DAA score
 
 ### 4x4 Widget Displays:
 - Current time
-- KAS/USD price
+- KAS price in your selected USD/EUR/GBP currency, plus real 24-hour change
 - Current DAA score
 - BPS (Blocks Per Second)
 - Network hashrate
 
 ## Update Frequency
 
-- Network refreshes are scheduled approximately every **15 minutes**; Android may defer them to conserve battery
+- Network refreshes are scheduled at your selected **15, 30 or 60 minute** interval; Android may defer them to conserve battery
 - Tap the widget to request an update; repeated taps share the unfinished request
 - If an attempt cannot fetch data, it keeps cached readings and finishes; the next tap can try again immediately
 - The clock continues independently of network refreshes
@@ -50,8 +60,8 @@
 
 The widget fetches data from public, read-only APIs:
 
-- **Price Data**: CoinGecko KAS/USD, with KuCoin and Gate KAS/USDT fallback (a USD approximation)
-- **Network Data**: Kaspa.org API (https://api.kaspa.org)
+- **Price Data**: CoinGecko USD/EUR/GBP. KuCoin and Gate KAS/USDT provide a USD-only approximation during outages. A source without percentage data displays “24h change unavailable”.
+- **Network Data**: Kaspa REST (https://api.kaspa.org), with a synced-mainnet public node fallback for missing feeds.
 
 ## Troubleshooting
 

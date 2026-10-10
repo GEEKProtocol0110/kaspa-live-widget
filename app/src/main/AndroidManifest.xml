@@ -11,6 +11,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light">
 
+        <activity android:name=".SettingsActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
         <!-- Widget receiver for 2x2 layout -->
         <receiver
             android:name=".widget.KaspaWidgetProvider"

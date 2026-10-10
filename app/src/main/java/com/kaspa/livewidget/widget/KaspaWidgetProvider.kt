@@ -2,98 +2,30 @@ package com.kaspa.livewidget.widget
 
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
-import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.widget.RemoteViews
-import com.kaspa.livewidget.R
-import com.kaspa.livewidget.data.KaspaNetworkData
-import com.kaspa.livewidget.utils.DataCache
+import android.os.Bundle
 import com.kaspa.livewidget.utils.WorkScheduler
-import java.util.Locale
 
-/**
- * Widget provider for 2x2 Kaspa widget
- * Displays time, price, and block height
- */
 class KaspaWidgetProvider : AppWidgetProvider() {
-
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
         if (intent.action == ACTION_REFRESH) WorkScheduler.refreshNow(context)
     }
-
-    override fun onUpdate(
-        context: Context,
-        appWidgetManager: AppWidgetManager,
-        appWidgetIds: IntArray
-    ) {
-        // Schedule periodic updates with WorkManager
+    override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) {
         WorkScheduler.scheduleWidgetUpdates(context)
-        
-        // Update all widget instances
-        updateAllWidgets(context, appWidgetManager, appWidgetIds)
+        updateAllWidgets(context, manager, ids)
     }
-
-    override fun onEnabled(context: Context) {
-        // First widget added, schedule updates
-        WorkScheduler.scheduleWidgetUpdates(context)
+    override fun onAppWidgetOptionsChanged(context: Context, manager: AppWidgetManager, id: Int, options: Bundle) {
+        updateAllWidgets(context, manager, intArrayOf(id))
     }
-
-    override fun onDisabled(context: Context) {
-        // Last widget removed, cancel updates
-        WorkScheduler.cancelWidgetUpdatesIfUnused(context)
-    }
-
+    override fun onEnabled(context: Context) = WorkScheduler.scheduleWidgetUpdates(context)
+    override fun onDisabled(context: Context) = WorkScheduler.cancelWidgetUpdatesIfUnused(context)
     companion object {
-        private const val ACTION_REFRESH = "com.kaspa.livewidget.REFRESH_SMALL"
-        fun updateAllWidgets(
-            context: Context,
-            appWidgetManager: AppWidgetManager,
-            appWidgetIds: IntArray
-        ) {
-            val cache = DataCache(context)
-            val data = cache.getCachedData() ?: KaspaNetworkData()
-
-            for (appWidgetId in appWidgetIds) {
-                updateAppWidget(context, appWidgetManager, appWidgetId, data)
-            }
-        }
-
-        private fun updateAppWidget(
-            context: Context,
-            appWidgetManager: AppWidgetManager,
-            appWidgetId: Int,
-            data: KaspaNetworkData
-        ) {
-            val views = RemoteViews(context.packageName, R.layout.widget_layout)
-            val refresh = Intent(context, KaspaWidgetProvider::class.java).setAction(ACTION_REFRESH)
-            views.setOnClickPendingIntent(
-                R.id.widget_root,
-                PendingIntent.getBroadcast(context, 0, refresh, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-            )
-
-            // TextClock is advanced by the launcher, independently of network updates.
-            views.setTextViewText(R.id.widget_updated, WidgetFreshness.label(data))
-
-            // Update price
-            val priceText = if (data.price.isFinite() && data.price > 0) {
-                String.format(Locale.US, "$%.4f", data.price)
-            } else {
-                "$--"
-            }
-            views.setTextViewText(R.id.widget_price, priceText)
-
-            // Update block height
-            val blockHeightText = if (data.blockHeight > 0) {
-                String.format(Locale.getDefault(), "%,d", data.blockHeight)
-            } else {
-                "--"
-            }
-            views.setTextViewText(R.id.widget_block_height, blockHeightText)
-
-            // Update the widget
-            appWidgetManager.updateAppWidget(appWidgetId, views)
+        const val ACTION_REFRESH = "com.kaspa.livewidget.REFRESH_SMALL"
+        fun updateAllWidgets(context: Context, manager: AppWidgetManager, ids: IntArray) {
+            for (id in ids) manager.updateAppWidget(id, WidgetRenderer.views(context, false,
+                manager.getAppWidgetOptions(id).getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT)))
         }
     }
 }
