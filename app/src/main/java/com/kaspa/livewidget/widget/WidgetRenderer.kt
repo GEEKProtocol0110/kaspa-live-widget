@@ -21,8 +21,9 @@ object WidgetRenderer {
         KaspaWidgetLargeProvider.updateAllWidgets(context, manager, manager.getAppWidgetIds(ComponentName(context, KaspaWidgetLargeProvider::class.java)))
     }
 
-    fun views(context: Context, large: Boolean, minHeight: Int = 0, minWidth: Int = 0): RemoteViews {
-        val prefs = WidgetSettings(context).get()
+    fun views(context: Context, large: Boolean, minHeight: Int = 0, minWidth: Int = 0,
+              previewPreferences: WidgetPreferences? = null): RemoteViews {
+        val prefs = previewPreferences?.normalized() ?: WidgetSettings(context).get()
         val data = DataCache(context).getCachedData() ?: KaspaNetworkData()
         val market = MarketCache(context).get(prefs.currency)
         val status = RefreshStatusCache(context).get()
