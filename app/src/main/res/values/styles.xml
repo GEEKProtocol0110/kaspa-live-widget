@@ -2,7 +2,7 @@
 <resources>
     <!-- Widget Typography -->
     <style name="Widget.Kaspa.Text" parent="android:Widget">
-        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:fontFamily">monospace</item>
         <item name="android:textColor">@color/kaspa_white</item>
     </style>
     
@@ -17,14 +17,14 @@
         <item name="android:textColor">@color/kaspa_mint</item>
         <item name="android:maxLines">1</item>
         <item name="android:autoSizeTextType">uniform</item>
-        <item name="android:autoSizeMinTextSize">18sp</item>
+        <item name="android:autoSizeMinTextSize">14sp</item>
         <item name="android:autoSizeMaxTextSize">28sp</item>
         <item name="android:autoSizeStepGranularity">1sp</item>
     </style>
     
     <style name="Widget.Kaspa.Text.Price.Large">
-        <item name="android:textSize">32sp</item>
-        <item name="android:autoSizeMaxTextSize">32sp</item>
+        <item name="android:textSize">34sp</item>
+        <item name="android:autoSizeMaxTextSize">34sp</item>
     </style>
     
     <style name="Widget.Kaspa.Text.Label">

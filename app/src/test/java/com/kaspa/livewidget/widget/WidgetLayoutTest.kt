@@ -62,34 +62,94 @@ class WidgetLayoutTest {
         }
     }
 
-    @Test fun rendererAppliesCurrencyThemeFeedbackAndResponsiveChart() {
+    @Test @Config(qualifiers="xhdpi") fun rendererAppliesCurrencyThemeFeedbackAndResponsiveChart() {
         val context = RuntimeEnvironment.getApplication()
         val now = System.currentTimeMillis()
         DataCache(context).saveData(KaspaNetworkData(blockHeight=561810469,blockCount=1210217,bps=10.0,
             hashrate="374.58 PH/s",networkTimestamp=now,hashrateTimestamp=now,timestamp=now))
-        MarketCache(context).save(MarketData(currency="EUR",price=.029,change24h=-2.3,timestamp=now,changeTimestamp=now,
-            history=listOf(PricePoint(now-24*3600_000L,.028),PricePoint(now-12*3600_000L,.032),PricePoint(now,.029)),historyTimestamp=now))
+        MarketCache(context).save(MarketData(currency="USD",price=.0312,change24h=-2.3,timestamp=now,changeTimestamp=now,
+            history=(0..48).map { step ->
+                PricePoint(now-24*3600_000L+step*1800_000L,
+                    .028+step*.00003+kotlin.math.sin(step*.5)*.0007+kotlin.math.cos(step*.17)*.0004)
+            },historyTimestamp=now))
         for (theme in listOf("dark","light")) {
-            WidgetSettings(context).save(WidgetPreferences("EUR",30,theme,true))
-            RefreshStatusCache(context).set("running","EUR",now)
-            for ((large,height) in listOf(false to 180,true to 300,true to 380)) {
+            WidgetSettings(context).save(WidgetPreferences("USD",30,theme,true))
+            RefreshStatusCache(context).set("running","USD",now)
+            for ((large,height) in listOf(false to 180,false to 300,false to 420,true to 300,true to 380)) {
                 val widget = WidgetRenderer.views(context,large,height).apply(context,FrameLayout(context))
-                assertEquals("EUR 0.0290",widget.findViewById<TextView>(R.id.widget_price).text.toString())
+                assertEquals("USD 0.0312",widget.findViewById<TextView>(R.id.widget_price).text.toString())
                 assertEquals("24h -2.30%",widget.findViewById<TextView>(R.id.widget_change).text.toString())
                 assertEquals(View.VISIBLE,widget.findViewById<View>(R.id.widget_progress).visibility)
-                if (large) assertEquals(if (height>=380) View.VISIBLE else View.GONE,widget.findViewById<View>(R.id.widget_chart_group).visibility)
+                assertEquals(View.VISIBLE,widget.findViewById<View>(R.id.widget_chart_group).visibility)
                 val density = context.resources.displayMetrics.density
                 val width = ((if (large) 250 else 140)*density).toInt()
                 val pixelsHigh = (height*density).toInt()
                 widget.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(pixelsHigh,View.MeasureSpec.EXACTLY))
                 widget.layout(0,0,width,pixelsHigh)
+                checkBounds(widget as ViewGroup,pixelsHigh,width)
+                val caption = widget.findViewById<TextView>(R.id.widget_chart_label)
+                assertEquals("24h USD chart", caption.text.toString())
+                assertEquals("chart caption must fit compact widths", 0, caption.layout.getEllipsisCount(0))
+                if (height >= 300) {
+                    val priceBounds=Rect()
+                    val scoreBounds=Rect()
+                    widget.findViewById<View>(R.id.price_panel).getDrawingRect(priceBounds)
+                    widget.offsetDescendantRectToMyCoords(widget.findViewById(R.id.price_panel),priceBounds)
+                    widget.findViewById<View>(R.id.network_panel).getDrawingRect(scoreBounds)
+                    widget.offsetDescendantRectToMyCoords(widget.findViewById(R.id.network_panel),scoreBounds)
+                    assertTrue("price must overlay chart in tall widgets: $priceBounds",priceBounds.centerY()<pixelsHigh*.72)
+                    assertTrue("score must overlay chart: $scoreBounds",scoreBounds.centerY()<pixelsHigh*.88)
+                }
                 val output = System.getProperty("widget.preview.dir")
                 if (output != null && android.os.Build.VERSION.SDK_INT == 34) {
+                    Robolectric.buildActivity(Activity::class.java).setup().use { host ->
+                        host.get().setContentView(widget)
+                        widget.findViewById<TextClock>(R.id.widget_time).onVisibilityAggregated(true)
+                        widget.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(pixelsHigh,View.MeasureSpec.EXACTLY))
+                        widget.layout(0,0,width,pixelsHigh)
+                    checkBounds(widget as ViewGroup,pixelsHigh,width)
                     val bitmap = Bitmap.createBitmap(width,pixelsHigh,Bitmap.Config.ARGB_8888)
                     widget.draw(Canvas(bitmap))
                     File(output).mkdirs()
-                    FileOutputStream(File(output,"widget-$theme-$height.png")).use { bitmap.compress(Bitmap.CompressFormat.PNG,100,it) }
+                    FileOutputStream(File(output,"widget-$theme-${if (large) "large" else "compact"}-$height.png")).use { bitmap.compress(Bitmap.CompressFormat.PNG,100,it) }
+                    }
                 }
+            }
+        }
+    }
+
+    private fun checkBounds(widget: ViewGroup, height: Int, width: Int) {
+        fun walk(parent: ViewGroup) {
+            for(index in 0 until parent.childCount) {
+                val child=parent.getChildAt(index)
+                if(child.visibility==View.GONE) continue
+                if(child is TextView && child.text.isNotBlank()) {
+                    val bounds=Rect(0,0,child.width,child.height)
+                    widget.offsetDescendantRectToMyCoords(child,bounds)
+                    assertTrue("${child.text} exceeds height: $bounds / $height",bounds.bottom<=height)
+                    assertTrue("${child.text} exceeds width: $bounds / $width",bounds.right<=width)
+                    assertTrue("${child.text} clipped vertically",child.layout.height<=child.height-child.compoundPaddingTop-child.compoundPaddingBottom)
+                } else if(child is ViewGroup) walk(child)
+            }
+        }
+        walk(widget)
+    }
+
+    @Test fun chartToggleKeepsGlassWithoutInventingMarketHistory() {
+        val context=RuntimeEnvironment.getApplication()
+        RefreshStatusCache(context).set("partial", "USD")
+        for (enabled in listOf(true,false)) {
+            WidgetSettings(context).save(WidgetPreferences(showChart=enabled))
+            MarketCache(context).save(MarketData())
+            for (large in listOf(false,true)) {
+                val widget=WidgetRenderer.views(context,large).apply(context,FrameLayout(context))
+                assertNotNull(widget.findViewById<android.widget.ImageView>(R.id.widget_logo).drawable)
+                assertNotNull(widget.findViewById<android.widget.ImageView>(R.id.widget_chart).drawable)
+                val status = widget.findViewById<TextView>(R.id.widget_status)
+                assertEquals("Some feeds delayed", status.text.toString())
+                assertEquals("Some feeds delayed · cached readings kept", status.contentDescription)
+                assertEquals(if(enabled) View.VISIBLE else View.GONE,widget.findViewById<View>(R.id.widget_chart_group).visibility)
+                if(enabled) assertEquals("24h chart unavailable",widget.findViewById<TextView>(R.id.widget_chart_label).text.toString())
             }
         }
     }

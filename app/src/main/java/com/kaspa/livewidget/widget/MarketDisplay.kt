@@ -17,4 +17,10 @@ internal object MarketDisplay {
         val stale = now - data.history.last().timestamp > 3_600_000L
         return "24h ${data.currency} chart · ${if (stale) "stale · " else ""}${WidgetFreshness.label(data.historyTimestamp, now)}"
     }
+
+    fun chartCaption(data: MarketData, now: Long = System.currentTimeMillis()): String {
+        if (data.history.size < 2) return "24h chart unavailable"
+        return "24h ${data.currency}" +
+            if (now - data.history.last().timestamp > 3_600_000L) " · stale" else " chart"
+    }
 }

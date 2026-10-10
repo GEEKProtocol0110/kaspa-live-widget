@@ -1,6 +1,5 @@
 package com.kaspa.livewidget.api
 
-import com.google.gson.JsonParser
 import com.kaspa.livewidget.data.MarketQuote
 import com.kaspa.livewidget.data.PricePoint
 import com.kaspa.livewidget.utils.WidgetPreferences
@@ -17,8 +16,9 @@ class MarketDataSource(
         .callTimeout(12, TimeUnit.SECONDS).build(),
     private val coinGeckoBase: String = "https://api.coingecko.com/api/v3",
     private val exchangeUrls: List<String> = listOf(
-        "https://api.kucoin.com/api/v1/market/orderbook/level1?symbol=KAS-USDT",
-        "https://api.gateio.ws/api/v4/spot/tickers?currency_pair=KAS_USDT"
+        "https://api.kucoin.com/api/v1/market/stats?symbol=KAS-USDT",
+        "https://api.gateio.ws/api/v4/spot/tickers?currency_pair=KAS_USDT",
+        "https://api.kucoin.com/api/v1/market/orderbook/level1?symbol=KAS-USDT"
     )
 ) {
     private fun get(url: String): String? =
@@ -35,18 +35,16 @@ class MarketDataSource(
         } catch (e: CancellationException) { throw e } catch (_: Exception) { }
         // KAS/USDT is a USD approximation. It must never be presented as EUR or GBP.
         if (currency == "USD") {
+            var priceOnly: MarketQuote? = null
             for (url in exchangeUrls) {
                 try {
                     val body = get(url) ?: continue
-                    val price = ExchangePriceParser.parse(body) ?: continue
-                    val root = JsonParser.parseString(body)
-                    val change = if (root.isJsonArray) root.asJsonArray.firstOrNull {
-                        it.isJsonObject && it.asJsonObject.get("currency_pair")?.asString == "KAS_USDT"
-                    }?.asJsonObject?.get("change_percentage")?.asString?.toDoubleOrNull()
-                        ?.takeIf { it.isFinite() && it >= -100.0 } else null
-                    return@withContext MarketQuote("USD", price, change, now, "KAS/USDT ≈ USD")
+                    val quote = ExchangeQuoteParser.parse(body, now) ?: continue
+                    if (quote.change24h != null) return@withContext quote
+                    if (priceOnly == null) priceOnly = quote
                 } catch (e: CancellationException) { throw e } catch (_: Exception) { }
             }
+            return@withContext priceOnly
         }
         null
     }

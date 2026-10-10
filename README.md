@@ -18,13 +18,13 @@
 ## Features
 
 - 📱 **Two Widget Sizes**: 2x2 (quick glance) and 4x4 (expanded view)
-- 🎨 **Unified Design**: Kaspa mint background with a mirrored black K on both sizes and the app icon
+- 🎨 **Unified Design**: Kaspa media-kit mark at the top, neon recorded-price line and frosted-glass readings on both sizes
 - 💰 **Live KAS Price**: USD, EUR or GBP with real 24-hour change; CoinGecko plus a USD-only exchange fallback
 - 📊 **Network Stats**: DAA score, observed average BPS (after two readings), and hashrate in TH/s, PH/s, or EH/s
 - ⏰ **Current Time**: Launcher-driven clock follows your phone’s 12/24-hour preference
 - 🔄 **Auto Updates**: Choose 15, 30 or 60 minutes using WorkManager; tap for visible refresh feedback
 - 💾 **Honest Freshness**: Keeps each feed’s last good reading and timestamp during partial outages; labels stale price, network, and hashrate readings
-- 🎨 **Clean Design**: Dark translucent data panels over Kaspa brand visuals
+- 🎨 **Clean Design**: Cypherpunk graphite surface, mint/cyan glow, etched grid and digital typography
 
 ## Setup and price history
 
@@ -32,7 +32,7 @@ Open the Kaspa Live Widget app icon or tap **Setup** on a widget. Add either siz
 
 Tap the widget or **Refresh now** for queued/running/completed/partial-failure feedback. Repeated taps share an unfinished request. Failed feeds keep their last successful timestamps. A currency switch never relabels a cached dollar value as euros or pounds. Exchange fallback is KAS/USDT (approximately USD) and cannot fill EUR/GBP. A price-only source shows “24h change unavailable” instead of attaching an old change percentage.
 
-Chart points come from CoinGecko’s real 24-hour series, refreshed at most once per hour when enabled. Missing data shows unavailable; old series remain labelled stale. The chart is visible in the app and in expanded widgets resized to at least 380dp high. Smaller layouts retain the price/change and network readings.
+Chart points come from CoinGecko’s real 24-hour series, refreshed at most once per hour when enabled. Missing data shows unavailable; old series remain labelled stale. The neon line is fused into the background of both widget sizes, behind the glass panels. The app also shows a chart preview. New installs enable the chart by default; an explicitly saved off setting stays off. Without valid history, the surface keeps its grid and shows “24h chart unavailable” without drawing a price line.
 
 See [SIGNED_RELEASES.md](SIGNED_RELEASES.md) for the prepared permanent-download workflow and required one-time owner signing setup. A signed public release still requires that setup and a reviewed release tag.
 
@@ -40,7 +40,7 @@ See [SIGNED_RELEASES.md](SIGNED_RELEASES.md) for the prepared permanent-download
 
 ### 2x2 Widget (Quick Glance)
 **Purpose**: Minimal information at a glance
-- Dark background with a centered mint mirrored K
+- Graphite glass surface with the proper Kaspa mark at the top
 - Current time (top)
 - KAS price (center focus, in dark panel)
 - DAA score (bottom panel)
@@ -48,7 +48,7 @@ See [SIGNED_RELEASES.md](SIGNED_RELEASES.md) for the prepared permanent-download
 
 ### 4x4 Widget (Command View)
 **Purpose**: Expanded view with more breathing room
-- Same dark background and mirrored K
+- Same Kaspa header and neon glass surface
 - Time + "Last updated" indicator (top row)
 - Expanded KAS price (center)
 - DAA score + observed BPS (middle row, side-by-side panels)
@@ -156,3 +156,11 @@ This widget is for informational purposes only. It does not provide financial ad
 [⭐ Star this repo](https://github.com/GEEKProtocol0110/kaspa-live-widget) if you find it useful!
 
 </div>
+
+### Neon glass layout refinement (1.2.1)
+
+The price and DAA score stay centered over the chart when the compact widget is stretched tall. Both themes keep refresh and feed age at the bottom. USD exchange fallback first uses KuCoin 24-hour statistics (fractional change converted to percent), then Gate tickers, and finally the price-only ticker. A working price is kept when change feeds fail; missing daily change is never estimated from a different source or from chart history.
+
+### Display polish (1.2.2)
+
+Chart captions and refresh messages fit the compact widget without losing the full accessibility description. Positive daily changes use mint, negative changes use coral (dark) or deep red (light), and missing/zero changes remain neutral. Secondary labels are quieter, and expanded score/BPS panels have consistent separation.

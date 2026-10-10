@@ -27,7 +27,7 @@ Open the app or tap **Setup** on a widget. Use **Add compact widget** or **Add e
 
 Tap the widget or **Refresh now** to see queued/running/completed status. Partial and failed updates keep cached readings with their original times. Switching currency shows that currency’s own cache or a placeholder while loading; it never relabels a dollar price as euros.
 
-The chart uses actual CoinGecko observations. It appears in the app and on expanded widgets at least 380dp high; resize the widget if it is hidden. Unavailable series show a message. Cached charts older than an hour show stale. Price/network readings older than 30 minutes show stale even when you select a 60-minute refresh interval.
+The chart uses actual CoinGecko observations. Its neon line appears behind the frosted-glass panels on both widget sizes, with a separate preview in the app. Unavailable series show a message. Cached charts older than an hour show stale. Price/network readings older than 30 minutes show stale even when you select a 60-minute refresh interval.
 
 Use **Downloads and release notes** to open GitHub Releases. Public signed releases require the owner’s one-time setup in [SIGNED_RELEASES.md](SIGNED_RELEASES.md). After the first signed release, newer release APKs update the existing app and preserve settings. Debug CI builds are a separate test app.
 
