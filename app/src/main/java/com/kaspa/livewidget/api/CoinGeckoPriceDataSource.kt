@@ -3,6 +3,7 @@ package com.kaspa.livewidget.api
 import android.util.Log
 import com.google.gson.Gson
 import com.kaspa.livewidget.data.PriceResponse
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -50,6 +51,8 @@ class CoinGeckoPriceDataSource(
                     null
                 }
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Log.e(TAG, "Error fetching price from $sourceName", e)
             null

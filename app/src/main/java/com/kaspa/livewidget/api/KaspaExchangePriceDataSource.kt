@@ -1,7 +1,7 @@
 package com.kaspa.livewidget.api
 
 import android.util.Log
-import com.google.gson.Gson
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -17,8 +17,7 @@ class KaspaExchangePriceDataSource(
         .connectTimeout(10, TimeUnit.SECONDS)
         .readTimeout(10, TimeUnit.SECONDS)
         .callTimeout(12, TimeUnit.SECONDS)
-        .build(),
-    private val gson: Gson = Gson()
+        .build()
 ) : PriceDataSource {
 
     override val sourceName: String = "KaspaExchange"
@@ -48,13 +47,15 @@ class KaspaExchangePriceDataSource(
                     if (response.isSuccessful) {
                         response.body?.string()?.let { body ->
                             // Attempt to parse different response formats
-                            val price = parsePrice(body)
+                            val price = ExchangePriceParser.parse(body)
                             if (price != null && price > 0) {
                                 return@withContext price
                             }
                         }
                     }
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 // Continue to next URL
                 Log.w(TAG, "Error fetching from $url", e)
@@ -63,37 +64,4 @@ class KaspaExchangePriceDataSource(
         null
     }
 
-    /**
-     * Parse price from various JSON response formats
-     * Supports KuCoin and Gate.io response structures
-     */
-    private fun parsePrice(json: String): Double? {
-        return try {
-            val map = gson.fromJson(json, Map::class.java) as? Map<*, *>
-            
-            // KuCoin format: {"data": {"price": "0.1234"}}
-            val kuCoinData = map?.get("data") as? Map<*, *>
-            val kuCoinPrice = (kuCoinData?.get("price") as? String)?.toDoubleOrNull()
-            if (kuCoinPrice != null && kuCoinPrice > 0) {
-                return kuCoinPrice
-            }
-            
-            // Gate.io format: [{"last": "0.1234"}]
-            val gateList = map as? List<*>
-            val gateFirst = gateList?.firstOrNull() as? Map<*, *>
-            val gatePrice = (gateFirst?.get("last") as? String)?.toDoubleOrNull()
-            if (gatePrice != null && gatePrice > 0) {
-                return gatePrice
-            }
-            
-            // Generic fallback for other formats
-            (map?.get("price") as? Number)?.toDouble()
-                ?: (map?.get("usd") as? Number)?.toDouble()
-                ?: (map?.get("priceUsd") as? Number)?.toDouble()
-                ?: (map?.get("last") as? Number)?.toDouble()
-        } catch (e: Exception) {
-            Log.e(TAG, "Error parsing price from JSON", e)
-            null
-        }
-    }
 }

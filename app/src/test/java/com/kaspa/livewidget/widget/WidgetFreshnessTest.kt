@@ -20,4 +20,22 @@ class WidgetFreshnessTest {
         assertTrue(WidgetFreshness.label(KaspaNetworkData(blockHeight = 100, timestamp = now), now)
             .startsWith("Price unavailable"))
     }
+
+    @Test fun freshNetworkDoesNotRelabelAnOldPrice() {
+        val now = 3_000_000L
+        val data = KaspaNetworkData(price = 0.05, blockHeight = 100, timestamp = now,
+            priceTimestamp = now - 31 * 60_000L, networkTimestamp = now)
+        assertTrue(WidgetFreshness.label(data, now).startsWith("Price stale · Stale since "))
+        assertTrue(WidgetFreshness.label(data.copy(priceTimestamp = now,
+            networkTimestamp = now - 31 * 60_000L), now).startsWith("Network stale · Stale since "))
+    }
+
+    @Test fun hashrateHasItsOwnFreshnessAndMissingValuesStayUnavailable() {
+        val now = 3_000_000L
+        val data = KaspaNetworkData(hashrate = "400 PH/s", timestamp = now,
+            hashrateTimestamp = now - 31 * 60_000L)
+        assertTrue(WidgetFreshness.hashrateLabel(data, now).startsWith("Stale since "))
+        assertEquals("Hashrate unavailable", WidgetFreshness.hashrateLabel(data.copy(hashrate = "N/A"), now))
+        assertTrue(WidgetFreshness.hashrateLabel(data.copy(hashrateTimestamp = 0L), now).startsWith("Updated "))
+    }
 }

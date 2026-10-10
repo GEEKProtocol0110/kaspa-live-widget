@@ -21,9 +21,9 @@
 - 🎨 **Unified Design**: Kaspa mint background with a mirrored black K on both sizes and the app icon
 - 💰 **Live KAS Price**: Auto-updated USD price from CoinGecko with exchange fallback
 - 📊 **Network Stats**: DAA score, observed average BPS (after two readings), and hashrate in TH/s, PH/s, or EH/s
-- ⏰ **Current Time**: Shows current time on widget
+- ⏰ **Current Time**: Launcher-driven clock follows your phone’s 12/24-hour preference
 - 🔄 **Auto Updates**: Scheduled updates every 15 minutes using WorkManager
-- 💾 **Honest Freshness**: Keeps the last good reading and marks it stale when updates stop
+- 💾 **Honest Freshness**: Keeps each feed’s last good reading and timestamp during partial outages; labels stale price, network, and hashrate readings
 - 🎨 **Clean Design**: Dark translucent data panels over Kaspa brand visuals
 
 ## Widget Layouts
@@ -52,13 +52,13 @@
 - **Min SDK**: 26 (Android 8.0)
 - **Target SDK**: 34 (Android 14)
 - **Update Mechanism**: AppWidgetProvider + WorkManager
-- **Update Interval**: 15 minutes
+- **Update Interval**: Approximately 15 minutes; Android can defer background work
+- **Manual Refresh**: Tap either widget; repeated taps share an unfinished request
 
 ### Data Sources
 - **Price Data**: Multiple sources with automatic fallback
-  - Primary: kaspa.stream (public, read-only)
-  - Secondary fallback: Kaspa exchange APIs (public, read-only)
-  - Failsafe fallback: CoinGecko API (public, read-only)
+  - Primary: CoinGecko KAS/USD (public, read-only)
+  - Fallback: KuCoin and Gate KAS/USDT tickers (public, read-only; a USD approximation)
 - **Network Data**: Kaspa API (public, read-only)
 - **Resilience**: Automatic failover if primary source is rate-limited or unavailable
 

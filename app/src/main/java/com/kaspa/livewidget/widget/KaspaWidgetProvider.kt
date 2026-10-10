@@ -10,8 +10,6 @@ import com.kaspa.livewidget.R
 import com.kaspa.livewidget.data.KaspaNetworkData
 import com.kaspa.livewidget.utils.DataCache
 import com.kaspa.livewidget.utils.WorkScheduler
-import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
 
 /**
@@ -75,14 +73,12 @@ class KaspaWidgetProvider : AppWidgetProvider() {
                 PendingIntent.getBroadcast(context, 0, refresh, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             )
 
-            // Update time
-            val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-            views.setTextViewText(R.id.widget_time, timeFormat.format(Date()))
+            // TextClock is advanced by the launcher, independently of network updates.
             views.setTextViewText(R.id.widget_updated, WidgetFreshness.label(data))
 
             // Update price
-            val priceText = if (data.price > 0) {
-                String.format("$%.4f", data.price)
+            val priceText = if (data.price.isFinite() && data.price > 0) {
+                String.format(Locale.US, "$%.4f", data.price)
             } else {
                 "$--"
             }
@@ -90,7 +86,7 @@ class KaspaWidgetProvider : AppWidgetProvider() {
 
             // Update block height
             val blockHeightText = if (data.blockHeight > 0) {
-                String.format("%,d", data.blockHeight)
+                String.format(Locale.getDefault(), "%,d", data.blockHeight)
             } else {
                 "--"
             }

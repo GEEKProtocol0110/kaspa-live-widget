@@ -5,6 +5,9 @@ import android.content.ComponentName
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import com.kaspa.livewidget.api.KaspaApiService
 import com.kaspa.livewidget.utils.DataCache
 import com.kaspa.livewidget.widget.KaspaWidgetProvider
@@ -12,7 +15,7 @@ import com.kaspa.livewidget.widget.KaspaWidgetLargeProvider
 
 /**
  * Worker for updating widget data in the background
- * Scheduled by WorkManager to run every 15-30 minutes
+ * Scheduled by WorkManager approximately every 15 minutes
  */
 class WidgetUpdateWorker(
     context: Context,
@@ -22,8 +25,14 @@ class WidgetUpdateWorker(
     private val apiService = KaspaApiService()
     private val cache = DataCache(context)
 
-    override suspend fun doWork(): Result {
-        return try {
+    companion object {
+        // Periodic and manual work use different names. Keep their read/merge/save
+        // cycles ordered so a slower refresh cannot overwrite newer cached data.
+        private val refreshMutex = Mutex()
+    }
+
+    override suspend fun doWork(): Result = refreshMutex.withLock {
+        try {
             // Fetch latest data from API
             val data = apiService.fetchAllData(cache.getCachedData())
             
@@ -32,10 +41,15 @@ class WidgetUpdateWorker(
             // Update all widget instances
             updateWidgets()
             
-            if (data == null) Result.retry() else Result.success()
+            // An outage is a completed attempt, not an unfinished refresh. KEEP
+            // must release this job so the next tap can try immediately instead
+            // of waiting through WorkManager retry backoff. Periodic work remains.
+            Result.success()
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             e.printStackTrace()
-            Result.retry()
+            Result.failure()
         }
     }
 
@@ -48,7 +62,7 @@ class WidgetUpdateWorker(
         )
         KaspaWidgetProvider.updateAllWidgets(applicationContext, appWidgetManager, widgetIds)
         
-        // Update 4x2 widgets
+        // Update 4x4 widgets
         val largeWidgetIds = appWidgetManager.getAppWidgetIds(
             ComponentName(applicationContext, KaspaWidgetLargeProvider::class.java)
         )

@@ -3,10 +3,11 @@ package com.kaspa.livewidget.api
 import android.util.Log
 import com.google.gson.Gson
 import com.kaspa.livewidget.data.KaspaNetworkData
-import com.kaspa.livewidget.data.BlockRate
+import com.kaspa.livewidget.data.NetworkDataMerger
 import com.kaspa.livewidget.data.HashrateFormatter
 import com.kaspa.livewidget.data.NetworkInfoResponse
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
@@ -55,6 +56,8 @@ class KaspaApiService(
                     Log.d(TAG, "Successfully fetched price from ${source.sourceName}: $$price")
                     return price
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Log.w(TAG, "Failed to fetch from ${source.sourceName}", e)
             }
@@ -80,6 +83,8 @@ class KaspaApiService(
                     }
                 } else null
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Log.w(TAG, "Network info unavailable", e)
             null
@@ -106,6 +111,8 @@ class KaspaApiService(
                     } ?: "N/A"
                 } else "N/A"
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Log.w(TAG, "Hashrate unavailable", e)
             "N/A"
@@ -122,25 +129,8 @@ class KaspaApiService(
         val hashRequest = async { fetchHashrate() }
         val price = priceRequest.await()
         val networkInfo = networkRequest.await()
-        val blockCount = networkInfo?.blockCount
-        val blockHeight = networkInfo?.virtualDaaScore
-        val networkValid = blockCount != null && blockCount > 0 && blockHeight != null && blockHeight > 0
-        if (price == null && !networkValid) return@coroutineScope null
-
         val hashrate = hashRequest.await()
-        val timestamp = System.currentTimeMillis()
-        // This is the average number of blocks per second between two API
-        // snapshots, never a hard-coded claim about the current network rate.
-        val bps = if (networkValid) BlockRate.between(previous, blockCount!!, timestamp) else 0.0
-
-        KaspaNetworkData(
-            price = price ?: 0.0,
-            blockHeight = if (networkValid) blockHeight!! else 0L,
-            bps = bps,
-            hashrate = if (networkValid) hashrate else "N/A",
-            blockCount = if (networkValid) blockCount!! else 0L,
-            timestamp = timestamp
-        )
+        NetworkDataMerger.merge(previous, price, networkInfo, hashrate, System.currentTimeMillis())
     }
 
 }
