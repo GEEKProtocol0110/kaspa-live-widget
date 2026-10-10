@@ -41,12 +41,15 @@ class WidgetUpdateWorker(
             // Update all widget instances
             updateWidgets()
             
-            if (data == null) Result.retry() else Result.success()
+            // An outage is a completed attempt, not an unfinished refresh. KEEP
+            // must release this job so the next tap can try immediately instead
+            // of waiting through WorkManager retry backoff. Periodic work remains.
+            Result.success()
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             e.printStackTrace()
-            Result.retry()
+            Result.failure()
         }
     }
 

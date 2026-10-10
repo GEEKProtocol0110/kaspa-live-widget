@@ -39,6 +39,7 @@
 
 - Network refreshes are scheduled approximately every **15 minutes**; Android may defer them to conserve battery
 - Tap the widget to request an update; repeated taps share the unfinished request
+- If an attempt cannot fetch data, it keeps cached readings and finishes; the next tap can try again immediately
 - The clock continues independently of network refreshes
 - Each feed keeps its last good value and successful-fetch timestamp
 - A fresh price cannot make an old network reading look fresh, or vice versa

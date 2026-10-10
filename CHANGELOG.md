@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Partial API failures retain other feeds’ last good values and original timestamps; stale feeds are identified separately.
 - Observed BPS uses the interval between network readings, even when price refreshes happen in between.
 - Manual refresh taps share unfinished work rather than repeatedly cancelling it.
+- Failed refresh attempts release the manual request so the next tap can retry immediately.
 - Manual and periodic refreshes cannot overwrite each other’s cache updates.
 - Gate fallback correctly reads ticker arrays, checks KAS/USDT, and rejects non-finite prices.
 - Larger freshness messages no longer squeeze the clock; compact spacing and adaptive number sizes keep data panels readable.
