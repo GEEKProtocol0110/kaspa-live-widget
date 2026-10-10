@@ -11,8 +11,8 @@ android {
         applicationId = "com.kaspa.livewidget"
         minSdk = 26
         targetSdk = 34
-        versionCode = 4
-        versionName = "1.2.1"
+        versionCode = 5
+        versionName = "1.2.2"
         
         setProperty("archivesBaseName", "kaspa-widget-v$versionName")
     }

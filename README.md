@@ -160,3 +160,7 @@ This widget is for informational purposes only. It does not provide financial ad
 ### Neon glass layout refinement (1.2.1)
 
 The price and DAA score stay centered over the chart when the compact widget is stretched tall. Both themes keep refresh and feed age at the bottom. USD exchange fallback first uses KuCoin 24-hour statistics (fractional change converted to percent), then Gate tickers, and finally the price-only ticker. A working price is kept when change feeds fail; missing daily change is never estimated from a different source or from chart history.
+
+### Display polish (1.2.2)
+
+Chart captions and refresh messages fit the compact widget without losing the full accessibility description. Positive daily changes use mint, negative changes use coral (dark) or deep red (light), and missing/zero changes remain neutral. Secondary labels are quieter, and expanded score/BPS panels have consistent separation.

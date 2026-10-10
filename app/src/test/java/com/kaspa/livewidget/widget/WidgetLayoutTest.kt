@@ -87,6 +87,9 @@ class WidgetLayoutTest {
                 widget.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(pixelsHigh,View.MeasureSpec.EXACTLY))
                 widget.layout(0,0,width,pixelsHigh)
                 checkBounds(widget as ViewGroup,pixelsHigh,width)
+                val caption = widget.findViewById<TextView>(R.id.widget_chart_label)
+                assertEquals("24h USD chart", caption.text.toString())
+                assertEquals("chart caption must fit compact widths", 0, caption.layout.getEllipsisCount(0))
                 if (height >= 300) {
                     val priceBounds=Rect()
                     val scoreBounds=Rect()
@@ -134,6 +137,7 @@ class WidgetLayoutTest {
 
     @Test fun chartToggleKeepsGlassWithoutInventingMarketHistory() {
         val context=RuntimeEnvironment.getApplication()
+        RefreshStatusCache(context).set("partial", "USD")
         for (enabled in listOf(true,false)) {
             WidgetSettings(context).save(WidgetPreferences(showChart=enabled))
             MarketCache(context).save(MarketData())
@@ -141,6 +145,9 @@ class WidgetLayoutTest {
                 val widget=WidgetRenderer.views(context,large).apply(context,FrameLayout(context))
                 assertNotNull(widget.findViewById<android.widget.ImageView>(R.id.widget_logo).drawable)
                 assertNotNull(widget.findViewById<android.widget.ImageView>(R.id.widget_chart).drawable)
+                val status = widget.findViewById<TextView>(R.id.widget_status)
+                assertEquals("Some feeds delayed", status.text.toString())
+                assertEquals("Some feeds delayed · cached readings kept", status.contentDescription)
                 assertEquals(if(enabled) View.VISIBLE else View.GONE,widget.findViewById<View>(R.id.widget_chart_group).visibility)
                 if(enabled) assertEquals("24h chart unavailable",widget.findViewById<TextView>(R.id.widget_chart_label).text.toString())
             }
