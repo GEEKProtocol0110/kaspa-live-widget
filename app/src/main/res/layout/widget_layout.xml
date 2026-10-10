@@ -10,10 +10,7 @@
         <LinearLayout android:id="@+id/time_panel" style="@style/Widget.Kaspa.Panel" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="2dp">
             <TextClock android:id="@+id/widget_time" style="@style/Widget.Kaspa.Text.Time" android:textSize="14sp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
         </LinearLayout>
-        <TextView android:id="@+id/widget_updated" android:maxLines="1" android:ellipsize="end" style="@style/Widget.Kaspa.Text.Label" android:textSize="9sp" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Waiting for data"/>
-        <TextView android:id="@+id/widget_status" android:maxLines="1" android:ellipsize="end" style="@style/Widget.Kaspa.Text.Label" android:textSize="9sp" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Tap to refresh"/>
-        <ProgressBar android:id="@+id/widget_progress" style="?android:attr/progressBarStyleHorizontal" android:layout_width="match_parent" android:layout_height="2dp" android:indeterminate="true" android:visibility="gone"/>
-        <TextView android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1"/>
+        <LinearLayout android:id="@+id/widget_readouts" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="vertical" android:gravity="center_vertical">
         <LinearLayout android:id="@+id/price_panel" style="@style/Widget.Kaspa.Panel" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="2dp">
             <TextView android:id="@+id/widget_price" style="@style/Widget.Kaspa.Text.Price" android:autoSizeMaxTextSize="22sp" android:textSize="22sp" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="USD --" android:gravity="center"/>
             <TextView android:id="@+id/widget_change" style="@style/Widget.Kaspa.Text.Label" android:textSize="9sp" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="24h change unavailable" android:gravity="center"/>
@@ -22,6 +19,10 @@
             <TextView android:id="@+id/network_panel_label" style="@style/Widget.Kaspa.Text.Label" android:textSize="9sp" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="DAA SCORE"/>
             <TextView android:id="@+id/widget_block_height" style="@style/Widget.Kaspa.Text.Value" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="--"/>
         </LinearLayout>
+        </LinearLayout>
+        <TextView android:id="@+id/widget_updated" android:maxLines="1" android:ellipsize="end" style="@style/Widget.Kaspa.Text.Label" android:textSize="9sp" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Waiting for data"/>
+        <TextView android:id="@+id/widget_status" android:maxLines="1" android:ellipsize="end" style="@style/Widget.Kaspa.Text.Label" android:textSize="9sp" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Tap to refresh"/>
+        <ProgressBar android:id="@+id/widget_progress" style="?android:attr/progressBarStyleHorizontal" android:layout_width="match_parent" android:layout_height="2dp" android:indeterminate="true" android:visibility="gone"/>
         <LinearLayout android:id="@+id/widget_chart_group" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
             <TextView android:id="@+id/widget_chart_label" style="@style/Widget.Kaspa.Text.Label" android:textSize="9sp" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="24h chart unavailable" android:maxLines="1" android:ellipsize="end"/>
         </LinearLayout>

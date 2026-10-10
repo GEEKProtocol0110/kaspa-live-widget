@@ -156,3 +156,7 @@ This widget is for informational purposes only. It does not provide financial ad
 [⭐ Star this repo](https://github.com/GEEKProtocol0110/kaspa-live-widget) if you find it useful!
 
 </div>
+
+### Neon glass layout refinement (1.2.1)
+
+The price and DAA score stay centered over the chart when the compact widget is stretched tall. Both themes keep refresh and feed age at the bottom. USD exchange fallback first uses KuCoin 24-hour statistics (fractional change converted to percent), then Gate tickers, and finally the price-only ticker. A working price is kept when change feeds fail; missing daily change is never estimated from a different source or from chart history.

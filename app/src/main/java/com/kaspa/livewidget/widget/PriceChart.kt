@@ -42,7 +42,7 @@ internal object PriceChart {
         paint.color = if(light) 0x08607685 else 0x08C2F6FF.toInt()
         y=0f
         while(y<h) { canvas.drawLine(0f,y,w,y,paint); y+=5f }
-        drawLine(canvas,observations(points), if(light) 0xFF087F8B.toInt() else 0xFF64FFE2.toInt(),w,h*.27f,h*.72f,true)
+        drawLine(canvas,observations(points), if(light) 0xFF087F8B.toInt() else 0xFF64FFE2.toInt(),w,h*.18f,h*.88f,true)
         canvas.restore()
         paint.shader = LinearGradient(0f,0f,w,h,
             if(light) intArrayOf(0xCC388D9A.toInt(),0x4422859B,0xAA517BA1.toInt())

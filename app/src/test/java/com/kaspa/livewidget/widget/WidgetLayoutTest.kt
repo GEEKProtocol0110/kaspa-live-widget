@@ -67,17 +67,17 @@ class WidgetLayoutTest {
         val now = System.currentTimeMillis()
         DataCache(context).saveData(KaspaNetworkData(blockHeight=561810469,blockCount=1210217,bps=10.0,
             hashrate="374.58 PH/s",networkTimestamp=now,hashrateTimestamp=now,timestamp=now))
-        MarketCache(context).save(MarketData(currency="EUR",price=.029,change24h=-2.3,timestamp=now,changeTimestamp=now,
+        MarketCache(context).save(MarketData(currency="USD",price=.0312,change24h=-2.3,timestamp=now,changeTimestamp=now,
             history=(0..48).map { step ->
                 PricePoint(now-24*3600_000L+step*1800_000L,
                     .028+step*.00003+kotlin.math.sin(step*.5)*.0007+kotlin.math.cos(step*.17)*.0004)
             },historyTimestamp=now))
         for (theme in listOf("dark","light")) {
-            WidgetSettings(context).save(WidgetPreferences("EUR",30,theme,true))
-            RefreshStatusCache(context).set("running","EUR",now)
-            for ((large,height) in listOf(false to 180,true to 300,true to 380)) {
+            WidgetSettings(context).save(WidgetPreferences("USD",30,theme,true))
+            RefreshStatusCache(context).set("running","USD",now)
+            for ((large,height) in listOf(false to 180,false to 300,false to 420,true to 300,true to 380)) {
                 val widget = WidgetRenderer.views(context,large,height).apply(context,FrameLayout(context))
-                assertEquals("EUR 0.0290",widget.findViewById<TextView>(R.id.widget_price).text.toString())
+                assertEquals("USD 0.0312",widget.findViewById<TextView>(R.id.widget_price).text.toString())
                 assertEquals("24h -2.30%",widget.findViewById<TextView>(R.id.widget_change).text.toString())
                 assertEquals(View.VISIBLE,widget.findViewById<View>(R.id.widget_progress).visibility)
                 assertEquals(View.VISIBLE,widget.findViewById<View>(R.id.widget_chart_group).visibility)
@@ -87,6 +87,16 @@ class WidgetLayoutTest {
                 widget.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(pixelsHigh,View.MeasureSpec.EXACTLY))
                 widget.layout(0,0,width,pixelsHigh)
                 checkBounds(widget as ViewGroup,pixelsHigh,width)
+                if (height >= 300) {
+                    val priceBounds=Rect()
+                    val scoreBounds=Rect()
+                    widget.findViewById<View>(R.id.price_panel).getDrawingRect(priceBounds)
+                    widget.offsetDescendantRectToMyCoords(widget.findViewById(R.id.price_panel),priceBounds)
+                    widget.findViewById<View>(R.id.network_panel).getDrawingRect(scoreBounds)
+                    widget.offsetDescendantRectToMyCoords(widget.findViewById(R.id.network_panel),scoreBounds)
+                    assertTrue("price must overlay chart in tall widgets: $priceBounds",priceBounds.centerY()<pixelsHigh*.72)
+                    assertTrue("score must overlay chart: $scoreBounds",scoreBounds.centerY()<pixelsHigh*.88)
+                }
                 val output = System.getProperty("widget.preview.dir")
                 if (output != null && android.os.Build.VERSION.SDK_INT == 34) {
                     Robolectric.buildActivity(Activity::class.java).setup().use { host ->
@@ -98,7 +108,7 @@ class WidgetLayoutTest {
                     val bitmap = Bitmap.createBitmap(width,pixelsHigh,Bitmap.Config.ARGB_8888)
                     widget.draw(Canvas(bitmap))
                     File(output).mkdirs()
-                    FileOutputStream(File(output,"widget-$theme-$height.png")).use { bitmap.compress(Bitmap.CompressFormat.PNG,100,it) }
+                    FileOutputStream(File(output,"widget-$theme-${if (large) "large" else "compact"}-$height.png")).use { bitmap.compress(Bitmap.CompressFormat.PNG,100,it) }
                     }
                 }
             }

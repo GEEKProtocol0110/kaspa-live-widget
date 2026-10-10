@@ -55,4 +55,33 @@ class MarketDataSourceTest {
         assertEquals(0.0,MarketDataMerger.merge(old,"EUR",null,null,now).price,0.0)
         assertEquals(old, MarketDataMerger.merge(old,"USD",MarketQuote("USD",.01,1.0,now-2000,"Old"),null,now))
     }
+
+    @Test fun priceOnlyFallbackDoesNotHideAnotherProvidersDailyChange() = runBlocking {
+        MockWebServer().use { server ->
+            server.enqueue(MockResponse().setResponseCode(429))
+            server.enqueue(MockResponse().setBody("""{"code":"200000","data":{"price":"0.0413"}}"""))
+            server.enqueue(MockResponse().setBody("""[{"currency_pair":"KAS_USDT","last":"0.0414","change_percentage":"-1.5"}]"""))
+            server.start()
+            val source = MarketDataSource(coinGeckoBase = server.url("/").toString().removeSuffix("/"),
+                exchangeUrls = listOf(server.url("/price-only").toString(), server.url("/gate").toString()))
+            val quote = source.quote("USD", now)!!
+            assertEquals(.0414, quote.price, .000001)
+            assertEquals(-1.5, quote.change24h!!, .000001)
+            assertEquals(3, server.requestCount)
+        }
+    }
+
+    @Test fun outagesKeepTheWorkingPriceWithoutInventingDailyChange() = runBlocking {
+        MockWebServer().use { server ->
+            server.enqueue(MockResponse().setResponseCode(429))
+            server.enqueue(MockResponse().setBody("""{"code":"200000","data":{"price":"0.0413"}}"""))
+            server.enqueue(MockResponse().setResponseCode(503))
+            server.start()
+            val source = MarketDataSource(coinGeckoBase = server.url("/").toString().removeSuffix("/"),
+                exchangeUrls = listOf(server.url("/price-only").toString(), server.url("/offline").toString()))
+            val quote = source.quote("USD", now)!!
+            assertEquals(.0413, quote.price, .000001)
+            assertNull(quote.change24h)
+        }
+    }
 }
