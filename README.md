@@ -34,7 +34,7 @@ Tap the widget or **Refresh saved settings** for queued/running/completed/partia
 
 Chart points come from CoinGecko’s real 24-hour series, refreshed at most once per hour when enabled. Missing data shows unavailable; old series remain labelled stale. The neon line is fused into the background of both widget sizes, behind the glass panels. The setup screen previews the actual widget layout, including its clock and glass panels, without fetching feeds or saving draft choices. The preview is reused while readings/settings stay unchanged; manual refresh is disabled while a request is in progress. New installs enable the chart by default; an explicitly saved off setting stays off. Without valid history, the surface keeps its grid and shows “24h chart unavailable” without drawing a price line.
 
-See [SIGNED_RELEASES.md](SIGNED_RELEASES.md) for the prepared permanent-download workflow and required one-time owner signing setup. A signed public release still requires that setup and a reviewed release tag.
+The [signed public APK](https://github.com/GEEKProtocol0110/kaspa-live-widget/releases/latest/download/kaspa-live-widget.apk) is available without a GitHub account. See [SIGNED_RELEASES.md](SIGNED_RELEASES.md) for release verification and maintainer signing instructions.
 
 ## Widget Layouts
 
@@ -98,7 +98,13 @@ See [SIGNED_RELEASES.md](SIGNED_RELEASES.md) for the prepared permanent-download
 
 ## Installation
 
-**No signed public release has been published yet.** The green CI badge means the source builds; it is not an app download.
+**[Download the signed Android APK](https://github.com/GEEKProtocol0110/kaspa-live-widget/releases/latest/download/kaspa-live-widget.apk)** — Android 8.0+, no GitHub account required. [Release notes and SHA256SUMS](https://github.com/GEEKProtocol0110/kaspa-live-widget/releases/latest) are available alongside the APK.
+
+1. Download `kaspa-live-widget.apk` on your Android phone.
+2. Open the APK and allow installation from your browser or file manager when Android asks.
+3. Open **Kaspa Live Widget**, choose your settings, then tap **Save & add**. Or long-press the home screen → **Widgets** → add **Kaspa 2x2** or **Kaspa 4x4**.
+
+Future signed releases update this app while keeping settings and widgets. If you used a CI debug build, the public release installs as a separate app; add its widgets before removing the old test app.
 
 ### Test the latest build on Android
 1. Sign in to GitHub and open the latest successful [CI run on `main`](https://github.com/GEEKProtocol0110/kaspa-live-widget/actions/workflows/ci.yml?query=branch%3Amain).
@@ -106,7 +112,7 @@ See [SIGNED_RELEASES.md](SIGNED_RELEASES.md) for the prepared permanent-download
 3. Open the APK on your phone and allow installation from your browser or file manager when Android asks.
 4. Long-press the home screen → **Widgets** → add **Kaspa 2x2** or **Kaspa 4x4**.
 
-The CI artifact expires after seven days. This is a separate debug app and will not replace an existing release installation. For a lasting build, [build from source](#building). A signed release will be linked from [Releases](https://github.com/GEEKProtocol0110/kaspa-live-widget/releases) when one exists.
+The CI artifact expires after seven days. This is a separate debug app and will not replace an existing release installation. Use the signed download above for everyday use, or [build from source](#building).
 
 ## Privacy & Security
 

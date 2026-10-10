@@ -10,10 +10,10 @@ Get your Kaspa Live Widget up and running in minutes!
 
 ### Installation Steps
 
-1. **Download the test APK**
-   - Sign in to GitHub and open the latest successful [CI run on `main`](https://github.com/GEEKProtocol0110/kaspa-live-widget/actions/workflows/ci.yml?query=branch%3Amain)
-   - Download the `debug-apk` artifact and extract its ZIP, or build from source below
-   - No signed public release has been published yet; this debug app installs separately from a release app
+1. **Download the signed APK**
+   - [Download kaspa-live-widget.apk](https://github.com/GEEKProtocol0110/kaspa-live-widget/releases/latest/download/kaspa-live-widget.apk) — no GitHub account required
+   - Find release notes and `SHA256SUMS` on the [latest release](https://github.com/GEEKProtocol0110/kaspa-live-widget/releases/latest)
+   - Existing debug testers: the public release installs as a separate app. Add its widgets before removing the test app. Future signed releases update the public app while keeping your settings and widgets
 
 2. **Install on Your Device**
    - Tap the downloaded APK file

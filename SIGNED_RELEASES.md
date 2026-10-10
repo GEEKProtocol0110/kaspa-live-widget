@@ -1,6 +1,8 @@
 # Signed releases
 
-The source includes a release pipeline. Signing is not activated until the owner supplies a persistent key. No signed public download is claimed until the first workflow succeeds.
+The first signed public release, [v1.3.0](https://github.com/GEEKProtocol0110/kaspa-live-widget/releases/tag/v1.3.0), was published on October 10, 2026. Its [release workflow](https://github.com/GEEKProtocol0110/kaspa-live-widget/actions/runs/38076101995) passed build/tests/lint and verified the APK certificate against the pinned signing fingerprint. Both the APK and `SHA256SUMS` are available publicly.
+
+The signing key and credentials are already configured in this repository's encrypted Actions secrets. Reuse the maintainer's backed-up key for future updates; do not generate a replacement.
 
 ## One-time owner setup
 
@@ -16,22 +18,22 @@ Five secrets: `WIDGET_KEYSTORE_BASE64`, `WIDGET_STORE_PASSWORD`, `WIDGET_KEY_ALI
 
 ## Publish after review and merge
 
-The prepared first public release is **1.3.0**, with `versionCode` **6**. Its [release notes](releases/v1.3.0.md) describe the current app. The source build/tests/lint passed in [main CI run 38038881560](https://github.com/GEEKProtocol0110/kaspa-live-widget/actions/runs/38038881560), for app source commit `db1e91d30d768793adc241f6af3d03fb071feac2`. This verifies the source and debug build; it does not verify a release certificate or constitute device acceptance. A public signed APK has not been published.
+The first public release is **1.3.0**, with `versionCode` **6**, built from commit `c3fab90709edf8d69b2f7510c6f2a68f3e69fd02`. Its [release notes](releases/v1.3.0.md) describe the app. The published APK SHA-256 is `c41cc81365246ec1f374b22b56a74f892d3bb46b3102547a615e0ef6dc1ab035`. The automated checks do not constitute device acceptance.
 
-Complete the one-time signing setup above and securely back up the key and password before publishing. Use current reviewed `main`; increment both `versionCode` and `versionName` for later app updates. If using GitHub CLI authentication with an HTTPS checkout, run `gh auth setup-git` once so Git can push using that account. Run `./gradlew build`, then create and push the matching tag:
+Keep the signing key and password securely backed up before publishing. Use current reviewed `main`; increment both `versionCode` and `versionName` for later app updates. If using GitHub CLI authentication with an HTTPS checkout, run `gh auth setup-git` once so Git can push using that account. Run `./gradlew build`, then create and push the matching tag. For example, after reviewing and merging version 1.3.1 with a version code greater than 6:
 
 ```bash
-git tag v1.3.0
-git push origin v1.3.0
+git tag v1.3.1
+git push origin v1.3.1
 ```
 
 The workflow requires the tagged commit to belong to main, verifies the tag matches `versionName`, runs the complete build/tests/lint, signs and checks the certificate against its pinned fingerprint. If a previous public stable APK exists, it checks the same certificate and a strictly increasing version code. Failed GitHub requests stop publication. It removes the runner’s keystore even on failure.
 
-Check that the **Signed release** workflow succeeds and the release contains both `kaspa-live-widget.apk` and `SHA256SUMS`. A tag by itself is not a public APK release. After the first successful signed release, the permanent download is:
+Check that the **Signed release** workflow succeeds and the release contains both `kaspa-live-widget.apk` and `SHA256SUMS`. A tag by itself is not a public APK release. Use the tag matching the new app version; do not recreate or move the published v1.3.0 tag. The permanent download is:
 
 https://github.com/GEEKProtocol0110/kaspa-live-widget/releases/latest/download/kaspa-live-widget.apk
 
-This URL is not a working download before that release. Version-specific releases remain available from the Releases page. The app’s Downloads button opens that page. Install a later release APK over the earlier release to preserve settings and widgets. CI debug APKs use a different app ID and are for testing; they do not upgrade a release app.
+Version-specific releases remain available from the Releases page. The app’s Downloads button opens that page. Install a later release APK over the earlier release to preserve settings and widgets. CI debug APKs use a different app ID and are for testing; they do not upgrade a release app.
 
 ## Local release verification
 
