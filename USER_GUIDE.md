@@ -32,7 +32,7 @@ Your unsaved choices survive rotation. **Install help & data sources** explains 
 
 ## Settings, refresh and chart
 
-Open the app or tap **Setup** on a widget. Use **Add compact widget** or **Add expanded widget**, or your launcher’s Widgets menu. Choose currency, refresh interval, dark/light appearance and optional 24-hour chart, then tap **Apply settings**. Choices apply to all your Kaspa widgets.
+Open the app or tap **Setup** on a widget. Choose currency, refresh interval, dark/light appearance and optional 24-hour chart, then tap **Apply settings**. Use **Save & add compact** or **Save & add expanded** to save choices and request a widget, or use your launcher’s Widgets menu. Choices apply to all your Kaspa widgets.
 
 Tap the widget or **Refresh now** to see queued/running/completed status. Partial and failed updates keep cached readings with their original times. Switching currency shows that currency’s own cache or a placeholder while loading; it never relabels a dollar price as euros.
 
