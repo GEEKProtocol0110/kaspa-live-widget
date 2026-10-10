@@ -14,45 +14,51 @@
 4. Long-press and drag it to your desired location
 5. Release to place
 
-### For 4x2 Widget (Extended View)
+### For 4x4 Widget (Extended View)
 1. Long-press on an empty area of your home screen
 2. Tap on "Widgets"
-3. Scroll to find "Kaspa 4x2"
+3. Scroll to find "Kaspa 4x4"
 4. Long-press and drag it to your desired location
 5. Release to place
 
 ## Widget Information
 
 ### 2x2 Widget Displays:
-- Current time (updates every minute when widget refreshes)
+- Current time (updates independently of network refreshes and follows your phone’s 12/24-hour preference)
 - KAS/USD price
-- Current block height
+- Current DAA score
 
-### 4x2 Widget Displays:
+### 4x4 Widget Displays:
 - Current time
 - KAS/USD price
-- Current block height
+- Current DAA score
 - BPS (Blocks Per Second)
 - Network hashrate
 
 ## Update Frequency
 
-- Widgets automatically update every **15 minutes**
-- Data is cached to reduce API calls and improve performance
+- Network refreshes are scheduled approximately every **15 minutes**; Android may defer them to conserve battery
+- Tap the widget to request an update; repeated taps share the unfinished request
+- The clock continues independently of network refreshes
+- Each feed keeps its last good value and successful-fetch timestamp
+- A fresh price cannot make an old network reading look fresh, or vice versa
+- On each widget update, readings older than 30 minutes are labelled stale; hashrate has its own freshness label on the large widget
 - Network connectivity is required for updates
 
 ## Data Sources
 
 The widget fetches data from public, read-only APIs:
 
-- **Price Data**: kaspa.stream (primary) + exchange APIs (secondary fallback) + CoinGecko (failsafe)
+- **Price Data**: CoinGecko KAS/USD, with KuCoin and Gate KAS/USDT fallback (a USD approximation)
 - **Network Data**: Kaspa.org API (https://api.kaspa.org)
 
 ## Troubleshooting
 
 ### Widget Not Updating
 - Check your internet connection
-- Remove and re-add the widget
+- Tap the widget to request a refresh; previously loaded readings remain visible during outages
+- Check the freshness labels before relying on a reading
+- If necessary, remove and re-add the widget
 - Restart your device
 
 ### Widget Shows "--" or "N/A"

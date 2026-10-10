@@ -4,7 +4,8 @@
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/widget_background">
+    android:background="@drawable/widget_background"
+    android:contentDescription="@string/refresh_hint">
 
     <!-- Centered mirrored Kaspa mark -->
     <ImageView
@@ -20,24 +21,23 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:padding="12dp">
+        android:padding="8dp">
 
         <!-- Time - Top -->
-        <TextView
+        <TextClock
             android:id="@+id/widget_time"
             style="@style/Widget.Kaspa.Text.Time"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="--:--"
             android:gravity="start"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="4dp" />
 
         <TextView
             android:id="@+id/widget_updated"
             style="@style/Widget.Kaspa.Text.Label"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Waiting for data"
+            android:text="@string/waiting_for_data"
             android:layout_marginBottom="4dp" />
 
         <!-- Spacer to push price to center -->
@@ -53,13 +53,14 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:gravity="center"
-            android:layout_marginBottom="8dp">
+            android:layout_marginBottom="4dp">
 
             <TextView
                 android:id="@+id/widget_price"
                 style="@style/Widget.Kaspa.Text.Price"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:gravity="center"
                 android:text="$--" />
 
         </LinearLayout>
@@ -71,8 +72,8 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center"
-            android:paddingTop="6dp"
-            android:paddingBottom="6dp">
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp">
 
             <TextView
                 style="@style/Widget.Kaspa.Text.Label"
@@ -84,8 +85,10 @@
             <TextView
                 android:id="@+id/widget_block_height"
                 style="@style/Widget.Kaspa.Text.Value"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
                 android:text="--" />
         </LinearLayout>
 

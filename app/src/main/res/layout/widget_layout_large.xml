@@ -4,7 +4,8 @@
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/widget_background">
+    android:background="@drawable/widget_background"
+    android:contentDescription="@string/refresh_hint">
 
     <!-- Centered mirrored Kaspa mark, larger than the 2x2 version -->
     <ImageView
@@ -22,20 +23,18 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- Top Row: Time + Last Updated -->
+        <!-- Stack time and freshness so a stale-data message cannot squeeze the clock. -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:layout_marginBottom="12dp">
 
-            <TextView
+            <TextClock
                 android:id="@+id/widget_time"
                 style="@style/Widget.Kaspa.Text.Time"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="--:--"
                 android:gravity="start" />
 
             <TextView
@@ -43,8 +42,8 @@
                 style="@style/Widget.Kaspa.Text.Label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Updated: --"
-                android:gravity="end" />
+                android:text="@string/waiting_for_data"
+                android:gravity="start" />
         </LinearLayout>
 
         <!-- Spacer -->
@@ -66,8 +65,9 @@
             <TextView
                 android:id="@+id/widget_price"
                 style="@style/Widget.Kaspa.Text.Price.Large"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                    android:gravity="center"
                 android:text="$--" />
 
         </LinearLayout>
@@ -99,8 +99,9 @@
                 <TextView
                     android:id="@+id/widget_block_height"
                     style="@style/Widget.Kaspa.Text.Value.Large"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:gravity="center"
                     android:text="--"
                     android:layout_marginTop="4dp" />
             </LinearLayout>
@@ -124,8 +125,9 @@
                 <TextView
                     android:id="@+id/widget_bps"
                     style="@style/Widget.Kaspa.Text.Value.Large"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:gravity="center"
                     android:text="--"
                     android:layout_marginTop="4dp" />
             </LinearLayout>
@@ -150,9 +152,19 @@
             <TextView
                 android:id="@+id/widget_hashrate"
                 style="@style/Widget.Kaspa.Text.Value.Large"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                    android:gravity="center"
                 android:text="N/A"
+                android:layout_marginTop="4dp" />
+
+            <TextView
+                android:id="@+id/widget_hashrate_updated"
+                style="@style/Widget.Kaspa.Text.Label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="@string/waiting_for_data"
                 android:layout_marginTop="4dp" />
         </LinearLayout>
 

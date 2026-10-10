@@ -27,7 +27,8 @@ object WorkScheduler {
     fun refreshNow(context: Context) {
         WorkManager.getInstance(context).enqueueUniqueWork(
             INITIAL_WORK_NAME,
-            ExistingWorkPolicy.REPLACE,
+            // A second tap shares the running request instead of cancelling it.
+            ExistingWorkPolicy.KEEP,
             OneTimeWorkRequestBuilder<WidgetUpdateWorker>().build()
         )
     }

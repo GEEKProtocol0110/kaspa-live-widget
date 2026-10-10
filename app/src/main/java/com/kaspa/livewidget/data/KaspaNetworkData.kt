@@ -10,5 +10,10 @@ data class KaspaNetworkData(
     val hashrate: String = "N/A",
     // Cumulative count lets us calculate an average across successful snapshots.
     val blockCount: Long = 0L,
-    val timestamp: Long = 0L
+    val timestamp: Long = 0L,
+    // Separate clocks prevent one recovered feed from making cached feeds look fresh.
+    // Zero means a pre-upgrade cache; fall back to its original snapshot timestamp.
+    val priceTimestamp: Long = 0L,
+    val networkTimestamp: Long = 0L,
+    val hashrateTimestamp: Long = 0L
 )

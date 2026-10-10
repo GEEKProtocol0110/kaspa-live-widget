@@ -15,12 +15,27 @@ internal object WidgetFreshness {
     }
 
     fun label(data: KaspaNetworkData, now: Long = System.currentTimeMillis()): String {
-        val freshness = label(data.timestamp, now)
-        if (data.timestamp <= 0L || data.timestamp > now) return freshness
+        val priceTime = data.priceTimestamp.takeIf { it > 0L } ?: data.timestamp
+        val networkTime = data.networkTimestamp.takeIf { it > 0L } ?: data.timestamp
+        // Report the oldest required reading, never the time of a partial refresh.
+        val oldestTime = when {
+            data.price <= 0.0 -> networkTime
+            data.blockHeight <= 0L -> priceTime
+            else -> minOf(priceTime, networkTime)
+        }
+        val freshness = label(oldestTime, now)
+        if (oldestTime <= 0L || oldestTime > now) return freshness
         return when {
-            data.price <= 0.0 -> "Price unavailable · $freshness"
+            !data.price.isFinite() || data.price <= 0.0 -> "Price unavailable · $freshness"
             data.blockHeight <= 0L -> "Network unavailable · $freshness"
+            priceTime <= 0L || priceTime > now || now - priceTime > FRESH_WINDOW_MS -> "Price stale · $freshness"
+            networkTime <= 0L || networkTime > now || now - networkTime > FRESH_WINDOW_MS -> "Network stale · $freshness"
             else -> freshness
         }
+    }
+
+    fun hashrateLabel(data: KaspaNetworkData, now: Long = System.currentTimeMillis()): String {
+        if (data.hashrate.isBlank() || data.hashrate == "N/A") return "Hashrate unavailable"
+        return label(data.hashrateTimestamp.takeIf { it > 0L } ?: data.timestamp, now)
     }
 }
