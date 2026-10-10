@@ -5,6 +5,15 @@
 1. Install the APK on your Android device (minimum Android 8.0)
 2. Open **Kaspa Live Widget** in your app drawer for installation help and settings
 
+## Preview and save your widget
+
+1. Choose **Compact** or **Expanded** in the app's preview size menu.
+2. Choose appearance, currency, refresh interval and chart visibility. The preview uses saved readings for that currency; unavailable data stays unavailable.
+3. Tap **Apply settings** to save for all widgets, or **Save & add compact/expanded** to save and ask your launcher to add it.
+4. **Refresh saved settings** refreshes the saved currency. The button waits while a request is queued/running. Unsaved preview choices do not request another currency's feed.
+
+Your unsaved choices survive rotation. **Install help & data sources** explains launcher fallback and feed sources.
+
 ## Adding the Widget to Your Home Screen
 
 ### For 2x2 Widget (Compact View)
@@ -23,7 +32,7 @@
 
 ## Settings, refresh and chart
 
-Open the app or tap **Setup** on a widget. Use **Add compact widget** or **Add expanded widget**, or your launcher’s Widgets menu. Choose currency, refresh interval, dark/light appearance and optional 24-hour chart, then tap **Apply settings**. Choices apply to all your Kaspa widgets.
+Open the app or tap **Setup** on a widget. Choose currency, refresh interval, dark/light appearance and optional 24-hour chart, then tap **Apply settings**. Use **Save & add compact** or **Save & add expanded** to save choices and request a widget, or use your launcher’s Widgets menu. Choices apply to all your Kaspa widgets.
 
 Tap the widget or **Refresh now** to see queued/running/completed status. Partial and failed updates keep cached readings with their original times. Switching currency shows that currency’s own cache or a placeholder while loading; it never relabels a dollar price as euros.
 

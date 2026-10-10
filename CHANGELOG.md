@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Neon/frosted setup screen with native previews of both widget sizes using saved feed readings.
+- Explicit draft feedback, rotation recovery, and Save & add controls that persist choices before pinning.
+- Manual refresh progress in setup; disabled repeated requests while work is active.
+- Idle previews reuse their bitmap/layout until readings, settings or freshness change.
+
 ### Fixed
 - Both widget clocks now advance independently of network work and follow system 12/24-hour settings.
 - Partial API failures retain other feeds’ last good values and original timestamps; stale feeds are identified separately.
@@ -22,12 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Physical-phone and launcher acceptance remain required before a signed public release.
 
 ### Planned
-- Settings screen for customization
-- Multiple theme options
 - Additional widget sizes (3x2, 3x3)
-- Configurable update intervals
 - Price alerts and notifications
-- Multi-currency support (EUR, GBP, etc.)
 
 ## [1.1.0] - 2026-01-25
 

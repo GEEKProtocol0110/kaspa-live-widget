@@ -11,8 +11,8 @@ android {
         applicationId = "com.kaspa.livewidget"
         minSdk = 26
         targetSdk = 34
-        versionCode = 5
-        versionName = "1.2.2"
+        versionCode = 6
+        versionName = "1.3.0"
         
         setProperty("archivesBaseName", "kaspa-widget-v$versionName")
     }
@@ -78,4 +78,5 @@ dependencies {
     testImplementation("com.squareup.okhttp3:mockwebserver:4.11.0")
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.14.1")
+    testImplementation("androidx.work:work-testing:2.9.0")
 }
