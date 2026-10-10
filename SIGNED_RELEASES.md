@@ -16,16 +16,18 @@ Five secrets: `WIDGET_KEYSTORE_BASE64`, `WIDGET_STORE_PASSWORD`, `WIDGET_KEY_ALI
 
 ## Publish after review and merge
 
-On `main`, increment both `versionCode` and `versionName` for each update (this change uses code 3 / name 1.2.0). Run `./gradlew build`, then create and push a matching tag:
+The prepared first public release is **1.3.0**, with `versionCode` **6**. Its [release notes](releases/v1.3.0.md) describe the current app. The source build/tests/lint passed in [main CI run 38038881560](https://github.com/GEEKProtocol0110/kaspa-live-widget/actions/runs/38038881560), for app source commit `db1e91d30d768793adc241f6af3d03fb071feac2`. This verifies the source and debug build; it does not verify a release certificate or constitute device acceptance. A public signed APK has not been published.
+
+Complete the one-time signing setup above and securely back up the key and password before publishing. Use current reviewed `main`; increment both `versionCode` and `versionName` for later app updates. If using GitHub CLI authentication with an HTTPS checkout, run `gh auth setup-git` once so Git can push using that account. Run `./gradlew build`, then create and push the matching tag:
 
 ```bash
-git tag v1.2.0
-git push origin v1.2.0
+git tag v1.3.0
+git push origin v1.3.0
 ```
 
 The workflow requires the tagged commit to belong to main, verifies the tag matches `versionName`, runs the complete build/tests/lint, signs and checks the certificate against its pinned fingerprint. If a previous public stable APK exists, it checks the same certificate and a strictly increasing version code. Failed GitHub requests stop publication. It removes the runner’s keystore even on failure.
 
-The published assets are `kaspa-live-widget.apk` and `SHA256SUMS`. After the first successful signed release, the permanent download is:
+Check that the **Signed release** workflow succeeds and the release contains both `kaspa-live-widget.apk` and `SHA256SUMS`. A tag by itself is not a public APK release. After the first successful signed release, the permanent download is:
 
 https://github.com/GEEKProtocol0110/kaspa-live-widget/releases/latest/download/kaspa-live-widget.apk
 
