@@ -48,14 +48,14 @@ class SettingsActivity : Activity() {
         label("If your launcher cannot add widgets here: long-press an empty home-screen space → Widgets → Kaspa Live Widget. Drag a widget onto the screen.")
         currency = select("Price currency", WidgetPreferences.CURRENCIES, R.id.currency_choice)
         interval = select("Background refresh", WidgetPreferences.INTERVALS.map { "$it minutes" }, R.id.interval_choice)
-        appearance = select("Appearance", listOf("Dark", "Light"), R.id.appearance_choice)
-        chart = Switch(this).apply { text = "Show 24-hour price chart"; id = R.id.chart_choice; body.addView(this) }
+        appearance = select("Appearance", listOf("Neon dark", "Frosted light"), R.id.appearance_choice)
+        chart = Switch(this).apply { text = "Show neon 24-hour chart behind glass"; id = R.id.chart_choice; body.addView(this) }
         val prefs = WidgetSettings(this).get()
         currency.setSelection(WidgetPreferences.CURRENCIES.indexOf(prefs.currency))
         interval.setSelection(WidgetPreferences.INTERVALS.indexOf(prefs.intervalMinutes))
         appearance.setSelection(WidgetPreferences.THEMES.indexOf(prefs.theme))
         chart.isChecked = prefs.showChart
-        label("Settings apply to all your Kaspa widgets. Android may delay background updates. The chart needs an expanded widget at least 380dp high; resize it or view the chart below.")
+        label("Settings apply to all your Kaspa widgets. Android may delay background updates. The real price chart glows behind the glass on both widget sizes. Missing and stale history stay labelled.")
         button("Apply settings", R.id.apply_settings) {
             WidgetSettings(this).save(WidgetPreferences(WidgetPreferences.CURRENCIES[currency.selectedItemPosition],
                 WidgetPreferences.INTERVALS[interval.selectedItemPosition], WidgetPreferences.THEMES[appearance.selectedItemPosition], chart.isChecked))

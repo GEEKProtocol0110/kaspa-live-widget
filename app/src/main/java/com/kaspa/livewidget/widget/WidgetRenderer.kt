@@ -21,7 +21,7 @@ object WidgetRenderer {
         KaspaWidgetLargeProvider.updateAllWidgets(context, manager, manager.getAppWidgetIds(ComponentName(context, KaspaWidgetLargeProvider::class.java)))
     }
 
-    fun views(context: Context, large: Boolean, minHeight: Int = 0): RemoteViews {
+    fun views(context: Context, large: Boolean, minHeight: Int = 0, minWidth: Int = 0): RemoteViews {
         val prefs = WidgetSettings(context).get()
         val data = DataCache(context).getCachedData() ?: KaspaNetworkData()
         val market = MarketCache(context).get(prefs.currency)
@@ -40,11 +40,22 @@ object WidgetRenderer {
         views.setTextViewText(R.id.widget_updated, WidgetFreshness.label(snapshot))
         views.setTextViewText(R.id.widget_block_height, if (data.blockHeight > 0) String.format(Locale.getDefault(), "%,d", data.blockHeight) else "--")
         val light = prefs.theme == "light"
-        val textColor = if (light) Color.rgb(16, 41, 45) else Color.WHITE
+        val textColor = if (light) Color.rgb(12, 43, 55) else Color.rgb(222, 255, 249)
+        val accent = if (light) Color.rgb(9, 86, 91) else Color.rgb(120, 255, 224)
+        val width = ((minWidth.takeIf { it > 0 } ?: if (large) 250 else 140) * 2).coerceIn(280,700)
+        val height = ((minHeight.takeIf { it > 0 } ?: if (large) 300 else 180) * 2).coerceIn(360,900)
+        views.setImageViewBitmap(R.id.widget_chart, PriceChart.glass(if (prefs.showChart) market.history else emptyList(),light,width,height))
+        views.setViewVisibility(R.id.widget_chart_group, if (prefs.showChart) View.VISIBLE else View.GONE)
+        views.setTextViewText(R.id.widget_chart_label, if (market.history.size < 2) "24h chart unavailable" else
+            "24h " + market.currency + if (System.currentTimeMillis() - market.history.last().timestamp > 3_600_000L) " · stale" else " · recorded prices")
+        views.setContentDescription(R.id.widget_chart_label, MarketDisplay.historyLabel(market))
         views.setInt(R.id.widget_root, "setBackgroundResource", if (light) R.drawable.widget_background_light else R.drawable.widget_background)
         for (id in listOf(R.id.widget_time, R.id.widget_price, R.id.widget_change, R.id.widget_block_height,
-            R.id.widget_updated, R.id.widget_status, R.id.widget_settings)) views.setTextColor(id, textColor)
-        for (id in listOf(R.id.price_panel, R.id.network_panel)) views.setInt(id, "setBackgroundResource",
+            R.id.widget_updated, R.id.widget_status, R.id.widget_settings, R.id.widget_brand, R.id.widget_chart_label)) views.setTextColor(id, textColor)
+        views.setTextColor(R.id.widget_price, accent)
+        views.setTextColor(R.id.widget_time, accent)
+        views.setTextColor(R.id.widget_brand, accent)
+        for (id in listOf(R.id.price_panel, R.id.network_panel, R.id.time_panel)) views.setInt(id, "setBackgroundResource",
             if (light) R.drawable.data_panel_background_light else R.drawable.data_panel_background)
         views.setTextColor(R.id.network_panel_label, textColor)
         if (large) {
@@ -55,12 +66,7 @@ object WidgetRenderer {
             views.setTextViewText(R.id.widget_hashrate, data.hashrate)
             views.setTextViewText(R.id.widget_hashrate_updated, WidgetFreshness.hashrateLabel(data))
             for (id in listOf(R.id.widget_bps, R.id.widget_hashrate, R.id.widget_hashrate_updated, R.id.widget_chart_label)) views.setTextColor(id, textColor)
-            val show = prefs.showChart && minHeight >= 380
-            views.setViewVisibility(R.id.widget_chart_group, if (show) View.VISIBLE else View.GONE)
-            views.setTextViewText(R.id.widget_chart_label, MarketDisplay.historyLabel(market))
-            views.setViewVisibility(R.id.widget_chart, if (market.history.size >= 2) View.VISIBLE else View.GONE)
-            if (show && market.history.size >= 2) views.setImageViewBitmap(R.id.widget_chart, PriceChart.bitmap(market.history, textColor))
-            views.setContentDescription(R.id.widget_chart, MarketDisplay.historyLabel(market))
+
         }
         return views
     }

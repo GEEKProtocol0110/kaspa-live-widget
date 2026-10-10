@@ -24,7 +24,7 @@ Manual taps share unfinished work. Settings changes append work rather than canc
 
 Prices, network counts and hashrate have separate last-good timestamps. Market quotes keep the provider’s `last_updated_at`; USD exchange quotes use their fetch time. A currency switch uses only that currency’s cache. Exchange fallback never populates EUR/GBP. A price-only quote clears a previous change percentage. Network source/node changes reset observed BPS so counts from different nodes are not subtracted. RPC block counts are node-local and may fall during pruning; a decreasing count produces no BPS reading.
 
-Price/network freshness is 30 minutes. A chart is stale when its last point is older than an hour. Successful history fetches are reused for one hour; missing history can be retried during later refreshes. Chart parsing requires positive finite prices, ordered/deduplicated timestamps, a recent final point and at least 22 hours of coverage. It never synthesizes a missing price series. The expanded widget shows the chart only at a minimum height of 380dp; the app always offers the enabled chart preview.
+Price/network freshness is 30 minutes. A chart is stale when its last point is older than an hour. Successful history fetches are reused for one hour; missing history can be retried during later refreshes. Chart parsing requires positive finite prices, ordered/deduplicated timestamps, a recent final point and at least 22 hours of coverage. It never synthesizes a missing price series. Both sizes fuse the enabled chart into their glass background; the app also offers a chart preview.
 
 ## Public data sources
 

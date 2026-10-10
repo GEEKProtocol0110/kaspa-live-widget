@@ -25,7 +25,8 @@ class KaspaWidgetLargeProvider : AppWidgetProvider() {
         const val ACTION_REFRESH = "com.kaspa.livewidget.REFRESH_LARGE"
         fun updateAllWidgets(context: Context, manager: AppWidgetManager, ids: IntArray) {
             for (id in ids) manager.updateAppWidget(id, WidgetRenderer.views(context, true,
-                manager.getAppWidgetOptions(id).getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT)))
+                manager.getAppWidgetOptions(id).getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT),
+                manager.getAppWidgetOptions(id).getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH)))
         }
     }
 }

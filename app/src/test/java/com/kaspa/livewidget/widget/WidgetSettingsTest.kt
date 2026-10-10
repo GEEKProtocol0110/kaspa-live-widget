@@ -48,7 +48,7 @@ class WidgetSettingsTest {
             val activity = controller.get()
             assertEquals("GBP",activity.findViewById<Spinner>(R.id.currency_choice).selectedItem)
             assertEquals("30 minutes",activity.findViewById<Spinner>(R.id.interval_choice).selectedItem)
-            assertEquals("Light",activity.findViewById<Spinner>(R.id.appearance_choice).selectedItem)
+            assertEquals("Frosted light",activity.findViewById<Spinner>(R.id.appearance_choice).selectedItem)
             assertTrue(activity.findViewById<Switch>(R.id.chart_choice).isChecked)
             assertNotNull(activity.findViewById<Button>(R.id.add_compact))
             assertNotNull(activity.findViewById<Button>(R.id.add_expanded))

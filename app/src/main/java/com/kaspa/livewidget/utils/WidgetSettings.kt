@@ -6,7 +6,7 @@ data class WidgetPreferences(
     val currency: String = "USD",
     val intervalMinutes: Long = 15L,
     val theme: String = "dark",
-    val showChart: Boolean = false
+    val showChart: Boolean = true
 ) {
     fun normalized() = copy(
         currency = currency.takeIf { it in CURRENCIES } ?: "USD",
@@ -27,7 +27,7 @@ class WidgetSettings(context: Context) {
         prefs.getString("currency", "USD") ?: "USD",
         prefs.getLong("interval", 15L),
         prefs.getString("theme", "dark") ?: "dark",
-        prefs.getBoolean("chart", false)
+        prefs.getBoolean("chart", true)
     ).normalized()
 
     fun save(value: WidgetPreferences) {
