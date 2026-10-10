@@ -11,14 +11,29 @@ android {
         applicationId = "com.kaspa.livewidget"
         minSdk = 26
         targetSdk = 34
-        versionCode = 2
-        versionName = "1.1.0"
+        versionCode = 3
+        versionName = "1.2.0"
         
         setProperty("archivesBaseName", "kaspa-widget-v$versionName")
     }
 
+    val signingEnvironment = listOf("WIDGET_KEYSTORE_PATH", "WIDGET_STORE_PASSWORD", "WIDGET_KEY_ALIAS", "WIDGET_KEY_PASSWORD")
+        .associateWith { System.getenv(it)?.takeIf(String::isNotBlank) }
+    require(signingEnvironment.values.all { it == null } || signingEnvironment.values.all { it != null }) {
+        "Release signing requires all four WIDGET signing environment variables"
+    }
+    if (signingEnvironment.values.all { it != null }) {
+        signingConfigs.create("persistentRelease") {
+            storeFile = file(signingEnvironment.getValue("WIDGET_KEYSTORE_PATH")!!)
+            storePassword = signingEnvironment.getValue("WIDGET_STORE_PASSWORD")
+            keyAlias = signingEnvironment.getValue("WIDGET_KEY_ALIAS")
+            keyPassword = signingEnvironment.getValue("WIDGET_KEY_PASSWORD")
+        }
+    }
+
     buildTypes {
         release {
+            if (signingEnvironment.values.all { it != null }) signingConfig = signingConfigs.getByName("persistentRelease")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
@@ -60,6 +75,7 @@ dependencies {
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.11.0")
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.14.1")
 }

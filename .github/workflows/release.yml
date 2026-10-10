@@ -1,80 +1,95 @@
-name: Release
+name: Signed release
 
 on:
   push:
-    tags:
-      - 'v*'
+    tags: ['v*']
+
+permissions:
+  contents: read
 
 jobs:
-  build-release:
+  release:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    
+    env:
+      WIDGET_STORE_PASSWORD: ${{ secrets.WIDGET_STORE_PASSWORD }}
+      WIDGET_KEY_ALIAS: ${{ secrets.WIDGET_KEY_ALIAS }}
+      WIDGET_KEY_PASSWORD: ${{ secrets.WIDGET_KEY_PASSWORD }}
+      WIDGET_SIGNING_CERT_SHA256: ${{ secrets.WIDGET_SIGNING_CERT_SHA256 }}
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: gradle
-    
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v4
-      with:
-        packages: 'platform-tools platforms;android-34 build-tools;34.0.0'
-        
-    - name: Create local.properties
-      run: echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
-        
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
-      
-    - name: Build release APK
-      run: ./gradlew assembleRelease --stacktrace
-
-    - name: Require signed release APK
-      run: |
-        apk=$(find app/build/outputs/apk/release -maxdepth 1 -name '*.apk' -print -quit)
-        if [ -z "$apk" ] || ! "$ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner" verify "$apk"; then
-          echo '::error::No signed release APK is available. Configure release signing before publishing.'
-          exit 1
-        fi
-      
-    - name: Get version from tag
-      id: version
-      run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-      
-    - name: Rename APK
-      run: |
-        mkdir -p release
-        find app/build/outputs/apk/release -name "*.apk" -exec cp {} release/kaspa-widget-${{ steps.version.outputs.VERSION }}.apk \;
-        
-    - name: Create Release
-      uses: softprops/action-gh-release@v1
-      with:
-        files: |
-          release/*.apk
-        draft: false
-        prerelease: false
-        generate_release_notes: true
-        body: |
-          ## Kaspa Live Widget ${{ steps.version.outputs.VERSION }}
-          
-          ### Installation
-          1. Download `kaspa-widget-${{ steps.version.outputs.VERSION }}.apk`
-          2. Enable "Unknown Sources" in Android settings
-          3. Install the APK
-          4. Add widget to your home screen
-          
-          ### What's Changed
-          See release notes below for details.
-          
-          ### Requirements
-          - Android 8.0 (API 26) or higher
-          - Internet connection
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: temurin
+          cache: gradle
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools platforms;android-34 build-tools;34.0.0'
+      - name: Validate release tag and main ancestry
+        shell: bash
+        run: |
+          set -euo pipefail
+          git merge-base --is-ancestor HEAD origin/main
+          python3 - <<'PY'
+          import os, re
+          text = open('app/build.gradle.kts').read()
+          version = re.search(r'versionName = "([0-9]+\.[0-9]+\.[0-9]+)"', text).group(1)
+          assert os.environ['GITHUB_REF_NAME'] == 'v' + version, 'Tag must match the app version'
+          PY
+      - name: Restore persistent signing key
+        env:
+          WIDGET_KEYSTORE_BASE64: ${{ secrets.WIDGET_KEYSTORE_BASE64 }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in WIDGET_KEYSTORE_BASE64 WIDGET_STORE_PASSWORD WIDGET_KEY_ALIAS WIDGET_KEY_PASSWORD WIDGET_SIGNING_CERT_SHA256; do
+            if [ -z "${!name}" ]; then echo "::error::Missing signing configuration: $name. See SIGNED_RELEASES.md."; exit 1; fi
+          done
+          umask 077
+          printf '%s' "$WIDGET_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/widget-release.jks"
+          echo "WIDGET_KEYSTORE_PATH=$RUNNER_TEMP/widget-release.jks" >> "$GITHUB_ENV"
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
+          chmod +x gradlew
+      - name: Test and build signed APK
+        run: ./gradlew build --no-daemon
+      - name: Verify signature and update compatibility
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          signer="$ANDROID_SDK_ROOT/build-tools/34.0.0/apksigner"
+          aapt="$ANDROID_SDK_ROOT/build-tools/34.0.0/aapt"
+          apk=$(find app/build/outputs/apk/release -maxdepth 1 -name '*.apk' -print -quit)
+          cert() { "$signer" verify --print-certs "$1" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p' | tr '[:upper:]' '[:lower:]'; }
+          expected=$(printf '%s' "$WIDGET_SIGNING_CERT_SHA256" | tr -d ':' | tr '[:upper:]' '[:lower:]')
+          test "$(cert "$apk")" = "$expected"
+          # A failed network request must not masquerade as a first release.
+          gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" > "$RUNNER_TEMP/releases.json"
+          previous=$(python3 -c 'import json,sys; print(next((r["tag_name"] for r in json.load(open(sys.argv[1])) if not r["draft"] and not r["prerelease"] and any(a["name"]=="kaspa-live-widget.apk" for a in r["assets"])), ""))' "$RUNNER_TEMP/releases.json")
+          if [ -n "$previous" ]; then
+            mkdir "$RUNNER_TEMP/previous"
+            gh release download "$previous" --repo "$GITHUB_REPOSITORY" --pattern kaspa-live-widget.apk --dir "$RUNNER_TEMP/previous"
+            old="$RUNNER_TEMP/previous/kaspa-live-widget.apk"
+            test "$(cert "$old")" = "$expected"
+            old_code=$("$aapt" dump badging "$old" | sed -n "s/^package:.*versionCode='\([0-9]*\)'.*/\1/p")
+            new_code=$("$aapt" dump badging "$apk" | sed -n "s/^package:.*versionCode='\([0-9]*\)'.*/\1/p")
+            test "$new_code" -gt "$old_code"
+          fi
+          mkdir release
+          cp "$apk" release/kaspa-live-widget.apk
+          (cd release && sha256sum kaspa-live-widget.apk > SHA256SUMS)
+      - name: Publish permanent download
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release create "$GITHUB_REF_NAME" release/kaspa-live-widget.apk release/SHA256SUMS --verify-tag --generate-notes --title "Kaspa Live Widget $GITHUB_REF_NAME" --notes "Install kaspa-live-widget.apk on Android 8+. Future signed releases update this app while keeping settings and widgets. Permanent URL: https://github.com/$GITHUB_REPOSITORY/releases/latest/download/kaspa-live-widget.apk"
+      - name: Remove signing material
+        if: always()
+        run: rm -f "$RUNNER_TEMP/widget-release.jks"

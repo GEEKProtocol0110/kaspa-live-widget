@@ -122,6 +122,12 @@ class KaspaApiService(
     /**
      * Fetch all Kaspa network data in one call
      */
+    suspend fun fetchFeeds(fallback: NetworkFallback = PublicNodeFallback()): NetworkFeeds = coroutineScope {
+        val network = async { fetchNetworkInfo() }
+        val hash = async { fetchHashrate() }
+        NetworkFeedResolver.resolve(network.await(), hash.await(), fallback)
+    }
+
     suspend fun fetchAllData(previous: KaspaNetworkData?): KaspaNetworkData? = coroutineScope {
         // Independent feeds should not block each other or hide valid readings.
         val priceRequest = async { fetchPrice() }

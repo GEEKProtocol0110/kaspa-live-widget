@@ -85,33 +85,14 @@ export PATH=$PATH:$ANDROID_HOME/tools
 
 ## Building Release APK
 
-### 1. Create Keystore (First Time Only)
+Use the persistent key setup in [SIGNED_RELEASES.md](SIGNED_RELEASES.md). Gradle reads `WIDGET_KEYSTORE_PATH`, `WIDGET_STORE_PASSWORD`, `WIDGET_KEY_ALIAS` and `WIDGET_KEY_PASSWORD` from the environment; it does not read a plaintext properties file. All four are required together. With none set, development/CI release builds are unsigned and cannot serve as public installation updates.
 
 ```bash
-keytool -genkey -v -keystore kaspa-widget.keystore -alias kaspa-widget -keyalg RSA -keysize 2048 -validity 10000
-```
-
-### 2. Sign the APK
-
-Create `keystore.properties` in project root:
-```properties
-storeFile=/path/to/kaspa-widget.keystore
-storePassword=YOUR_KEYSTORE_PASSWORD
-keyAlias=kaspa-widget
-keyPassword=YOUR_KEY_PASSWORD
-```
-
-**Important**: Never commit `keystore.properties` to Git!
-
-### 3. Build Release
-
-Release signing is not currently wired into the Gradle build. Store your keystore and passwords securely and add a release signing configuration before shipping; `assembleRelease` alone may produce an unsigned APK that cannot be installed.
-
-```bash
+./gradlew build
 ./gradlew assembleRelease
 ```
 
-APK will be in: `app/build/outputs/apk/release/app-release.apk`
+APKs are under `app/build/outputs/apk/release/`. Public tagged releases require the owner’s signing configuration and publish the stable asset `kaspa-live-widget.apk`. Keep the same key and increase the version code for every update.
 
 ## Running on Device/Emulator
 
@@ -157,9 +138,9 @@ org.gradle.jvmargs=-Xmx4096m -XX:MaxPermSize=1024m
 After installation:
 1. Long-press on home screen
 2. Tap "Widgets"
-3. Find "Kaspa 2x2" or "Kaspa 4x2"
+3. Find "Kaspa 2x2" or "Kaspa 4x4"
 4. Add to home screen
-5. Widget should fetch data within 15 minutes
+5. Widget requests a refresh immediately; tap it to see refresh feedback
 
 ## Dependencies
 

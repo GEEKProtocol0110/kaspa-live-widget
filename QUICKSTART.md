@@ -29,18 +29,22 @@ Get your Kaspa Live Widget up and running in minutes!
 4. **Wait for First Update**
    - Initial display shows "--" for data
    - The app requests an initial update when you add a widget
-   - Subsequent updates every 15 minutes
+   - Subsequent updates at your selected 15/30/60-minute interval; Android may defer them
+
+### Customize
+
+Open the app icon or tap **Setup** on a widget. Choose currency, refresh interval, appearance and chart; tap **Apply settings**. The app also has Add widget buttons and a chart preview. Expanded widgets need at least 380dp height to show the optional chart.
 
 ### What You'll See
 
 **2x2 Widget (Compact)**
 - Current time
-- KAS/USD price
+- KAS price in USD/EUR/GBP with real 24-hour change
 - Block height
 
 **4x4 Widget (Extended)**
 - Current time
-- KAS/USD price
+- KAS price in USD/EUR/GBP with real 24-hour change
 - Block height
 - Blocks per second (BPS)
 - Network hashrate
@@ -82,7 +86,7 @@ cd kaspa-live-widget
 
 ### Building Release APK
 
-The repository has no configured release signing key. `assembleRelease` alone does not produce an installable public release; configure a signing key before publishing an APK or creating a release tag. Keep keystores and passwords out of Git.
+Release signing is wired to environment variables, but the owner must supply a persistent key before public releases. Follow [SIGNED_RELEASES.md](SIGNED_RELEASES.md) for setup. Without the four signing variables, `assembleRelease` stays unsigned. Keep keystores and passwords out of Git.
 
 ```bash
 # Generate keystore (first time only)
@@ -167,7 +171,7 @@ keytool -genkey -v -keystore kaspa-widget.keystore \
 
 **Solutions**:
 1. Check internet connection
-2. Wait 15 minutes for first update
+2. Tap the widget to request the first update and watch its refresh status
 3. Remove and re-add widget
 4. Check device time is correct
 5. Verify APIs are accessible
@@ -299,7 +303,7 @@ adb -s <device_id> install -r app-debug.apk
 1. ✅ Add widget to home screen
 2. ✅ Wait for first data update
 3. ✅ Customize placement and size
-4. 📱 Add second widget (4x2 if you have 2x2)
+4. 📱 Add second widget (4x4 if you have 2x2)
 5. ⭐ Star the repository on GitHub
 6. 🐛 Report issues or suggest features
 

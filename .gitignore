@@ -45,3 +45,9 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+# Never commit release signing material
+.signing/
+*.jks
+*.keystore
+release-cert.der

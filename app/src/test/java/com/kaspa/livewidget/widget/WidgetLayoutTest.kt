@@ -11,6 +11,12 @@ import android.widget.FrameLayout
 import android.widget.RemoteViews
 import android.widget.TextClock
 import android.widget.TextView
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import com.kaspa.livewidget.data.*
+import com.kaspa.livewidget.utils.*
+import java.io.File
+import java.io.FileOutputStream
 import com.kaspa.livewidget.R
 import org.junit.Assert.*
 import org.junit.Test
@@ -56,6 +62,38 @@ class WidgetLayoutTest {
         }
     }
 
+    @Test fun rendererAppliesCurrencyThemeFeedbackAndResponsiveChart() {
+        val context = RuntimeEnvironment.getApplication()
+        val now = System.currentTimeMillis()
+        DataCache(context).saveData(KaspaNetworkData(blockHeight=561810469,blockCount=1210217,bps=10.0,
+            hashrate="374.58 PH/s",networkTimestamp=now,hashrateTimestamp=now,timestamp=now))
+        MarketCache(context).save(MarketData(currency="EUR",price=.029,change24h=-2.3,timestamp=now,changeTimestamp=now,
+            history=listOf(PricePoint(now-24*3600_000L,.028),PricePoint(now-12*3600_000L,.032),PricePoint(now,.029)),historyTimestamp=now))
+        for (theme in listOf("dark","light")) {
+            WidgetSettings(context).save(WidgetPreferences("EUR",30,theme,true))
+            RefreshStatusCache(context).set("running","EUR",now)
+            for ((large,height) in listOf(false to 180,true to 300,true to 380)) {
+                val widget = WidgetRenderer.views(context,large,height).apply(context,FrameLayout(context))
+                assertEquals("EUR 0.0290",widget.findViewById<TextView>(R.id.widget_price).text.toString())
+                assertEquals("24h -2.30%",widget.findViewById<TextView>(R.id.widget_change).text.toString())
+                assertEquals(View.VISIBLE,widget.findViewById<View>(R.id.widget_progress).visibility)
+                if (large) assertEquals(if (height>=380) View.VISIBLE else View.GONE,widget.findViewById<View>(R.id.widget_chart_group).visibility)
+                val density = context.resources.displayMetrics.density
+                val width = ((if (large) 250 else 140)*density).toInt()
+                val pixelsHigh = (height*density).toInt()
+                widget.measure(View.MeasureSpec.makeMeasureSpec(width,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(pixelsHigh,View.MeasureSpec.EXACTLY))
+                widget.layout(0,0,width,pixelsHigh)
+                val output = System.getProperty("widget.preview.dir")
+                if (output != null && android.os.Build.VERSION.SDK_INT == 34) {
+                    val bitmap = Bitmap.createBitmap(width,pixelsHigh,Bitmap.Config.ARGB_8888)
+                    widget.draw(Canvas(bitmap))
+                    File(output).mkdirs()
+                    FileOutputStream(File(output,"widget-$theme-$height.png")).use { bitmap.compress(Bitmap.CompressFormat.PNG,100,it) }
+                }
+            }
+        }
+    }
+
     @Test fun readingsAndStaleMessagesFitTheDeclaredMinimumSizes() {
         val context = RuntimeEnvironment.getApplication()
         val density = context.resources.displayMetrics.density
@@ -67,6 +105,8 @@ class WidgetLayoutTest {
                 setTextViewText(R.id.widget_price, "$0.0312")
                 setTextViewText(R.id.widget_block_height, "362,815,907")
                 setTextViewText(R.id.widget_updated, "Network stale · Stale since 06:15")
+                setTextViewText(R.id.widget_status, "Update unavailable · cache kept")
+                setTextViewText(R.id.widget_change, "24h +3.21% · stale")
                 if (layout == R.layout.widget_layout_large) {
                     setTextViewText(R.id.widget_bps, "10.00")
                     setTextViewText(R.id.widget_hashrate, "427.91 PH/s")
@@ -84,6 +124,7 @@ class WidgetLayoutTest {
             fun checkText(parent: ViewGroup) {
                 for (index in 0 until parent.childCount) {
                     val child = parent.getChildAt(index)
+                    if (child.visibility == View.GONE) continue
                     if (child is TextView && child.text.isNotBlank()) {
                         val bounds = Rect(0, 0, child.width, child.height)
                         widget.offsetDescendantRectToMyCoords(child, bounds)

@@ -1,381 +1,48 @@
-# Kaspa Live Widget - Technical Architecture
-
-## Overview
-
-Kaspa Live Widget is an Android home screen widget application that displays live Kaspa network data including price, block height, BPS (blocks per second), and network hashrate.
-
-## Architecture
-
-### Component Diagram
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                     Android System                          │
-│  ┌───────────────────────────────────────────────────────┐  │
-│  │              Home Screen (Launcher)                    │  │
-│  │  ┌──────────────┐         ┌──────────────┐            │  │
-│  │  │  2x2 Widget  │         │  4x2 Widget  │            │  │
-│  │  └──────┬───────┘         └──────┬───────┘            │  │
-│  └─────────┼────────────────────────┼────────────────────┘  │
-│            │                        │                        │
-│  ┌─────────┴────────────────────────┴────────────────────┐  │
-│  │           Widget Providers Layer                       │  │
-│  │  ┌──────────────────────┐  ┌──────────────────────┐   │  │
-│  │  │ KaspaWidgetProvider  │  │KaspaWidgetLarge...   │   │  │
-│  │  └──────────┬───────────┘  └──────────┬───────────┘   │  │
-│  └─────────────┼───────────────────────────┼──────────────┘  │
-│                │                           │                 │
-│  ┌─────────────┴───────────────────────────┴──────────────┐  │
-│  │              Business Logic Layer                       │  │
-│  │  ┌──────────────────┐  ┌──────────────────┐            │  │
-│  │  │  DataCache       │  │  WorkScheduler   │            │  │
-│  │  └──────────────────┘  └────────┬─────────┘            │  │
-│  │                                 │                       │  │
-│  │                      ┌──────────┴─────────┐             │  │
-│  │                      │ WidgetUpdateWorker │             │  │
-│  │                      └──────────┬─────────┘             │  │
-│  └─────────────────────────────────┼──────────────────────┘  │
-│                                    │                         │
-│  ┌─────────────────────────────────┴──────────────────────┐  │
-│  │                Data Access Layer                        │  │
-│  │  ┌──────────────────────────────────────────────────┐   │  │
-│  │  │            KaspaApiService                       │   │  │
-│  │  └──────────────────────────────────────────────────┘   │  │
-│  └─────────────────────────────────────────────────────────┘  │
-└────────────────────────┬────────────────────────────────────┘
-                         │
-                         │ HTTPS
-                         ▼
-┌────────────────────────────────────────────────────────────┐
-│                    External APIs                           │
-│  ┌──────────────────┐          ┌──────────────────┐        │
-│  │ kaspa.stream +   │          │   Kaspa API      │        │
-│  │ fallback APIs    │          │  (Network Data)  │        │
-│  └──────────────────┘          └──────────────────┘        │
-└────────────────────────────────────────────────────────────┘
-```
-
-## Core Components
-
-### 1. Widget Providers
-
-#### KaspaWidgetProvider (2x2)
-- **Purpose**: Manages the compact 2x2 widget
-- **Displays**: Time, Price, Block Height
-- **Lifecycle**:
-  - `onUpdate()`: Called when widget needs updating
-  - `onEnabled()`: First widget added - schedules updates
-  - `onDisabled()`: Last widget removed - cancels updates
-
-#### KaspaWidgetLargeProvider (4x2)
-- **Purpose**: Manages the extended 4x2 widget
-- **Displays**: Time, Price, Block Height, BPS, Hashrate
-- **Lifecycle**: Same as 2x2 widget
-
-### 2. Background Processing
-
-#### WidgetUpdateWorker
-- **Type**: CoroutineWorker (WorkManager)
-- **Schedule**: Periodic, every 15 minutes
-- **Tasks**:
-  1. Fetch latest data from APIs
-  2. Save to cache
-  3. Update all widget instances
-- **Error Handling**: Retries on failure
-
-#### WorkScheduler
-- **Purpose**: Manages WorkManager scheduling
-- **Methods**:
-  - `scheduleWidgetUpdates()`: Enqueues periodic work
-  - `cancelWidgetUpdates()`: Cancels scheduled work
-- **Policy**: KEEP - maintains existing schedule
-
-### 3. Data Layer
-
-#### PriceDataSource Interface
-- **Purpose**: Abstraction for price data providers
-- **Implementations**:
-  - `KaspaStreamPriceDataSource`: Primary source (kaspa.stream)
-  - `KaspaExchangePriceDataSource`: Secondary fallback source
-  - `CoinGeckoPriceDataSource`: Failsafe fallback source
-- **Fallback Strategy**: Tries each source in order until one succeeds
-- **Benefits**: 
-  - Resilience against rate limiting
-  - No hard dependency on single provider
-  - Easy to add new sources
-
-#### KaspaApiService
-- **Purpose**: Fetches data from public APIs with fallback handling
-- **APIs Used**:
-  - Price: Multiple sources via PriceDataSource interface
-    - Primary: kaspa.stream
-    - Secondary fallback: Kaspa exchange APIs
-    - Failsafe fallback: CoinGecko `https://api.coingecko.com/api/v3/simple/price`
-  - Kaspa Network: `https://api.kaspa.org/info/blockdag`
-  - Kaspa Hashrate: `https://api.kaspa.org/info/hashrate`
-- **Technology**: OkHttp + Gson
-- **Error Handling**: 
-  - Try-catch with null returns
-  - Automatic fallback to secondary price sources
-  - Rate limit detection (HTTP 429)
-
-#### DataCache
-- **Purpose**: Caches network data locally
-- **Storage**: SharedPreferences
-- **Cache Validity**: 14 minutes
-- **Methods**:
-  - `saveData()`: Stores network data
-  - `getCachedData()`: Retrieves cached data
-  - `isCacheValid()`: Checks if cache is still fresh
-  - `getValidCachedData()`: Returns data only if valid
-
-### 4. Data Models
-
-#### KaspaNetworkData
-```kotlin
-data class KaspaNetworkData(
-    val price: Double = 0.0,
-    val blockHeight: Long = 0L,
-    val bps: Double = 0.0,
-    val hashrate: String = "N/A",
-    val timestamp: Long = System.currentTimeMillis()
-)
-```
-
-## Update Flow
-
-### Initial Widget Addition
-
-```
-User adds widget to home screen
-    ↓
-onEnabled() called
-    ↓
-WorkScheduler.scheduleWidgetUpdates()
-    ↓
-onUpdate() called immediately
-    ↓
-Check cache for data
-    ↓
-Display data (or defaults if none)
-    ↓
-Wait for WorkManager to trigger first update
-```
-
-### Periodic Updates
-
-```
-WorkManager triggers (every 15 min)
-    ↓
-WidgetUpdateWorker.doWork()
-    ↓
-KaspaApiService.fetchAllData()
-  ├── fetchPrice() → kaspa.stream → exchanges → CoinGecko (fallback chain)
-    ├── fetchNetworkInfo() → Kaspa API
-    └── fetchHashrate() → Kaspa API
-    ↓
-DataCache.saveData()
-    ↓
-Update all widget instances
-    ├── KaspaWidgetProvider.updateAllWidgets()
-    └── KaspaWidgetLargeProvider.updateAllWidgets()
-    ↓
-RemoteViews updated
-    ↓
-AppWidgetManager.updateAppWidget()
-    ↓
-Widget display refreshed on home screen
-```
-
-## Threading Model
-
-### Main Thread
-- Widget UI updates (RemoteViews)
-- AppWidgetProvider callbacks
-
-### Background Threads
-- Network requests (Dispatchers.IO)
-- WorkManager workers
-- Cache operations
-
-### Coroutines
-- API calls use `suspend` functions
-- `withContext(Dispatchers.IO)` for network operations
-- Structured concurrency for safe cancellation
-
-## Data Format & Display
-
-### Price Display
-- Format: `$X.XXXX` (4 decimal places)
-- Fallback: `$--` (no data)
-- Color: #00D4AA (Kaspa green)
-
-### Block Height Display
-- Format: `XXX,XXX` (comma-separated)
-- Fallback: `--` (no data)
-- Source: virtualDaaScore from network info
-
-### BPS Display
-- Format: `X.X BPS`
-- Default: 1.0 (Kaspa's average)
-- Note: Can be enhanced with historical calculation
-
-### Hashrate Display
-- API unit: TH/s; display is scaled to TH/s, PH/s, or EH/s
-- Fallback: `N/A` (no data)
-- Example: `156.23 PH/s`
-
-## Caching Strategy
-
-### Why Cache?
-1. Reduce API calls (rate limiting)
-2. Improve responsiveness
-3. Offline fallback
-4. Battery optimization
-
-### Cache Invalidation
-- Time-based: 14 minutes
-- Shorter than update interval (15 min)
-- Ensures data freshness
-
-### Cache Miss Handling
-- Display default values
-- Don't block UI
-- Wait for next update
-
-## Battery Optimization
-
-### WorkManager Benefits
-- System-managed scheduling
-- Doze mode compatible
-- Battery-aware execution
-- Automatic retry with backoff
-
-### Update Frequency
-- 15 minutes: Good balance
-- Not too frequent (battery drain)
-- Not too infrequent (stale data)
-
-### Network Efficiency
-- Single batch API call
-- Connection pooling (OkHttp)
-- Timeout limits (10 seconds)
-- No polling or long-running connections
-
-## Error Handling
-
-### Network Errors
-- Try-catch in all API calls
-- Return null on failure
-- Display cached data
-- Retry on next schedule
-
-### API Errors
-- HTTP status checks
-- JSON parsing errors
-- Fallback to default values
-
-### Widget Lifecycle
-- Handle missing context
-- Null safety throughout
-- Default values for missing data
-
-## Security Considerations
-
-### API Security
-- ✅ HTTPS only
-- ✅ Read-only endpoints
-- ✅ No authentication required
-- ✅ Public data only
-
-### Data Security
-- ✅ No sensitive data stored
-- ✅ No private keys
-- ✅ No wallet functionality
-- ✅ No user tracking
-
-### Permissions
-- ✅ Internet: Required for API calls
-- ✅ Network State: Check connectivity
-- ✅ No other permissions needed
-
-## Testing Strategy
-
-### Manual Testing
-1. Add widget to home screen
-2. Verify initial display
-3. Wait 15 minutes for update
-4. Check data accuracy
-5. Test network error scenarios
-6. Verify battery usage
-
-### Device Testing
-- Multiple Android versions (8.0+)
-- Various screen densities
-- Different launchers
-- Battery optimization settings
-
-## Future Enhancements
-
-### Potential Features
-1. **User Configuration**
-   - Adjustable update interval
-   - Custom color themes
-   - Data source selection
-
-2. **Additional Data**
-   - Price change percentage
-   - 24h high/low
-   - Market cap
-   - Circulating supply
-
-3. **Advanced Caching**
-   - Historical block data for BPS calculation
-   - Price trend tracking
-   - Offline mode improvements
-
-4. **Widget Variants**
-   - 1x1 minimal widget
-   - 4x4 detailed widget
-   - Lock screen widget (Android 13+)
-
-5. **Performance**
-   - GraphQL for optimized queries
-   - WebSocket for near real-time updates
-   - Image caching for icons
-
-## Dependencies
-
-### Production
-- `androidx.core:core-ktx:1.12.0` - Kotlin extensions
-- `androidx.appcompat:appcompat:1.6.1` - Backward compatibility
-- `androidx.work:work-runtime-ktx:2.9.0` - Background scheduling
-- `com.squareup.okhttp3:okhttp:4.11.0` - HTTP client
-- `com.google.code.gson:gson:2.10.1` - JSON parsing
-- `org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3` - Async operations
-
-### Build
-- `com.android.tools.build:gradle:8.1.0` - Android Gradle plugin
-- `org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.0` - Kotlin plugin
-
-## Performance Metrics
-
-### Network Usage
-- ~5-10 KB per update
-- 96 updates per day (every 15 min)
-- ~480 KB - 1 MB daily
-
-### Battery Impact
-- Minimal (WorkManager optimized)
-- Background work: <1% daily
-- No foreground services
-- No wakelocks
-
-### Storage
-- APK Size: ~500 KB - 1 MB
-- Cache Size: <10 KB
-- Total: <2 MB
-
-## Conclusion
-
-The Kaspa Live Widget is designed with simplicity, efficiency, and user privacy in mind. It provides essential Kaspa network information at a glance while maintaining minimal resource usage and respecting user privacy.
+# Architecture
+
+Android 8+ native home-screen widgets, Kotlin, RemoteViews and WorkManager. Both providers use one renderer; the launcher advances the TextClock independently of network calls. The app does not access wallets or submit transactions.
+
+## Components
+
+| Component | Responsibility |
+| --- | --- |
+| `SettingsActivity` | Widget pin requests, manual installation help, shared preferences, current reading/chart preview and release page |
+| `WidgetSettings` | Validated USD/EUR/GBP, 15/30/60-minute interval, dark/light theme and chart preference |
+| `WorkScheduler` | Unique periodic work with UPDATE policy; manual KEEP work; settings changes append a refresh so an unfinished old-currency request cannot suppress the new choice |
+| `WidgetUpdateWorker` | Mutex around cache read/fetch/merge/save, parallel market/network calls, progress/result status and widget rendering |
+| `KaspaApiService` | Public REST network and hashrate calls |
+| `PublicNodeFallback` | Short validated mainnet JSON-wRPC session for missing REST feeds |
+| `MarketDataSource` / `MarketParser` | Selected-currency quote, real 24-hour change/provider timestamp and validated historical prices |
+| `NetworkDataMerger` / `MarketDataMerger` | Retain failed feeds without renewing their timestamps; reject old/cross-currency quotes |
+| `DataCache` / `MarketCache` | SharedPreferences snapshots; separate currency keys and safe legacy USD migration |
+| `RefreshStatusCache` | Queued/running/complete/partial/unavailable/interrupted status |
+| `WidgetRenderer` / `MarketDisplay` / `PriceChart` | Both sizes, responsive chart visibility, honest unavailable/stale labels and Canvas drawing of recorded points |
+
+## Refresh and cache rules
+
+Manual taps share unfinished work. Settings changes append work rather than cancelling an active fetch. Periodic interval changes use UPDATE. A process-local mutex prevents periodic/manual refreshes from overwriting each other’s cache snapshots. Failed attempts finish instead of occupying manual KEEP work through a retry backoff. Removing the last widget cancels periodic and manual work; the app can still request an explicit refresh.
+
+Prices, network counts and hashrate have separate last-good timestamps. Market quotes keep the provider’s `last_updated_at`; USD exchange quotes use their fetch time. A currency switch uses only that currency’s cache. Exchange fallback never populates EUR/GBP. A price-only quote clears a previous change percentage. Network source/node changes reset observed BPS so counts from different nodes are not subtracted. RPC block counts are node-local and may fall during pruning; a decreasing count produces no BPS reading.
+
+Price/network freshness is 30 minutes. A chart is stale when its last point is older than an hour. Successful history fetches are reused for one hour; missing history can be retried during later refreshes. Chart parsing requires positive finite prices, ordered/deduplicated timestamps, a recent final point and at least 22 hours of coverage. It never synthesizes a missing price series. The expanded widget shows the chart only at a minimum height of 380dp; the app always offers the enabled chart preview.
+
+## Public data sources
+
+CoinGecko `/api/v3/simple/price` requests the selected currency, `include_24hr_change=true` and `include_last_updated_at=true`. `/coins/kaspa/market_chart?vs_currency=...&days=1` supplies historical `[Unix milliseconds, price]` pairs. USD-only fallbacks are public KuCoin and Gate KAS/USDT tickers; the UI identifies these as an approximation. All calls have timeouts and failures preserve the last good data.
+
+Primary network endpoints are `https://api.kaspa.org/info/blockdag` and `/info/hashrate` (TH/s). Missing feeds are filled without replacing a healthy primary reading. The fallback uses official public resolver groups (`kaspa.stream`, `kaspa.red`, `kaspa.blue`) and requires an allowlisted WSS host and exact mainnet proxy path. Resolver records currently expose Borsh paths; the documented proxy layout also exposes the corresponding `/wrpc/json` path. That convention is not a protocol guarantee: unavailable JSON endpoints fail safely and another resolver can be tried.
+
+Before accepting a node, `getServerInfo` must identify a synced mainnet server with RPC API version 1. Only `getBlockDagInfo` and `estimateNetworkHashesPerSecond` follow. RPC hashrate is H/s, converted to the existing TH/s formatter. Requests correlate IDs/methods, responses are bounded and the socket closes on completion/cancellation. The fallback has a 24-second overall coroutine budget, 10-second node budget and 6-second HTTP call timeout. Blocking HTTP cancellation can finish at its call timeout. No authentication, subscriptions or wallet calls are used.
+
+Upstream references:
+
+- JSON proxy paths: https://kaspa.aspectron.org/rpc/proxies.html
+- Resolver configuration/protocol: https://github.com/kaspanet/rusty-kaspa/tree/master/rpc/wrpc/client
+- RPC messages and units: https://github.com/kaspanet/rusty-kaspa/blob/master/rpc/core/src/model/message.rs
+- CoinGecko quote/history: https://docs.coingecko.com/reference/simple-price and https://docs.coingecko.com/reference/coins-id-market-chart
+
+## Verification and releases
+
+`./gradlew build` assembles debug/release, runs unit tests for both variants and Android lint. Robolectric uses native graphics on API 26 and 34 to check clocks, layout bounds, currency/theme/progress/chart rendering and the app setup screen. MockWebServer covers the actual wRPC response envelope and rejects testnet before additional calls. Market tests cover rate-limit fallback, currency isolation, provider ages and invalid/short/stale history.
+
+Release signing uses a persistent owner-held keystore supplied through Actions secrets. Tagged main commits must match the app version, pass the full build, match the pinned certificate and, after the first public release, use the same certificate and a larger version code. Assets use a stable APK filename and checksum. See [SIGNED_RELEASES.md](SIGNED_RELEASES.md). No production signing key is stored in this repository.
