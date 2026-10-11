@@ -4,6 +4,8 @@
     <style name="Widget.Kaspa.Text" parent="android:Widget">
         <item name="android:fontFamily">monospace</item>
         <item name="android:textColor">@color/kaspa_white</item>
+        <!-- Reserve the compact widget's limited height for the actual glyphs. -->
+        <item name="android:includeFontPadding">false</item>
     </style>
     
     <style name="Widget.Kaspa.Text.Time">
