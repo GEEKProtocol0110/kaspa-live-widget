@@ -15,21 +15,27 @@ def locate(identifier, by='resource-id', seek=True):
             if n.get(by) == identifier:
                 box = list(map(int,re.findall(r'\d+',n.get('bounds',''))))
                 if len(box) == 4 and box[2] > box[0] and box[3] > box[1]: return n,box
-        if seek: adb('shell','input','swipe','540','1600','540','500','250'); time.sleep(.4)
+        if seek: swipe(False); time.sleep(.4)
     tree=adb('shell','cat','/sdcard/acceptance.xml'); (OUT/'missing-control.xml').write_text(tree);
     screenshot('missing-control'); print(tree,flush=True)
     raise AssertionError('Control not visible: '+identifier)
 def tap(identifier, by='resource-id'):
     _,b=locate(identifier,by); adb('shell','input','tap',str((b[0]+b[2])//2),str((b[1]+b[3])//2)); time.sleep(.7)
+def swipe(to_top):
+    root=nodes()[0]; b=list(map(int,re.findall(r'\d+',root.get('bounds','')))); width,height=b[2],b[3]
+    start,end=(.3,.8) if to_top else (.8,.3)
+    adb('shell','input','swipe',str(width//2),str(int(height*start)),str(width//2),str(int(height*end)),'250')
 def top():
-    for _ in range(8): adb('shell','input','swipe','540','400','540','1600','150')
+    for _ in range(8): swipe(True)
 def open_app():
     adb('shell','am','start','-W','-n',PACKAGE+'/.SettingsActivity'); time.sleep(2)
 def screenshot(name):
     with (OUT/(name+'.png')).open('wb') as f: subprocess.run(['adb','exec-out','screencap','-p'],stdout=f,check=True)
     assert (OUT/(name+'.png')).stat().st_size > 10000
     (OUT/(name+'.xml')).write_text(adb('shell','cat','/sdcard/acceptance.xml'))
-def value(identifier): return locate(PACKAGE+':id/'+identifier)[0].get('text','')
+def value(identifier):
+    node=locate(PACKAGE+':id/'+identifier)[0]
+    return ' '.join(n.get('text','') for n in node.iter('node')).strip()
 def settings():
     top(); assert 'Frosted light' in value('appearance_choice'); assert 'GBP' in value('currency_choice'); assert '30 minutes' in value('interval_choice')
 def settle():
