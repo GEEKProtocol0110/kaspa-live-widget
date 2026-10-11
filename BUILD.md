@@ -2,12 +2,12 @@
 
 ## Prerequisites
 
-- **Android Studio**: Arctic Fox (2020.3.1) or later
-- **JDK**: 8 or later (JDK 11+ recommended)
+- **Android Studio**: compatible with AGP 8.10.1 or later
+- **JDK**: 21 (required for Android 16 Robolectric tests)
 - **Android SDK**: 
-  - Compile SDK: API 34 (Android 14)
+  - Compile SDK: API 36 (Android 16)
   - Min SDK: API 26 (Android 8.0)
-  - Build Tools: 34.0.0
+  - Build Tools: 35.0.0
 
 ## Environment Setup
 
@@ -18,8 +18,8 @@ Download from: https://developer.android.com/studio
 In Android Studio:
 1. Go to `Tools > SDK Manager`
 2. Install:
-   - Android SDK Platform 34
-   - Android SDK Build-Tools 34.0.0
+   - Android SDK Platform 36
+   - Android SDK Build-Tools 35.0.0
    - Android SDK Platform-Tools
 
 ### 3. Set ANDROID_HOME (Optional)

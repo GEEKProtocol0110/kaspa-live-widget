@@ -60,7 +60,7 @@ The [signed public APK](https://github.com/GEEKProtocol0110/kaspa-live-widget/re
 ### Architecture
 - **Language**: Kotlin
 - **Min SDK**: 26 (Android 8.0)
-- **Target SDK**: 34 (Android 14)
+- **Target SDK**: 36 (Android 16)
 - **Update Mechanism**: AppWidgetProvider + WorkManager
 - **Update Interval**: 15, 30 or 60 minutes; Android can defer background work
 - **Manual Refresh**: Tap either widget; repeated taps share an unfinished request
@@ -82,9 +82,9 @@ The [signed public APK](https://github.com/GEEKProtocol0110/kaspa-live-widget/re
 ## Building
 
 ### Prerequisites
-- Android Studio Arctic Fox or later
-- JDK 17
-- Android SDK with API 34
+- Android Studio compatible with AGP 8.10.1 or later
+- JDK 21 (Android 16 tests require Java 21)
+- Android SDK with API 36
 
 ### Build Steps
 1. Clone the repository
@@ -170,3 +170,7 @@ The price and DAA score stay centered over the chart when the compact widget is 
 ### Display polish (1.2.2)
 
 Chart captions and refresh messages fit the compact widget without losing the full accessibility description. Positive daily changes use mint, negative changes use coral (dark) or deep red (light), and missing/zero changes remain neutral. Secondary labels are quieter, and expanded score/BPS panels have consistent separation.
+
+## Google Play preparation
+
+The v1.4.0 release targets Android 16/API 36 and includes a signed Android App Bundle alongside the APK. Store copy, privacy/data review notes, graphics, real-screen capture instructions and the owner submission checklist are in [play-store/](play-store/release-checklist.md). Registration, identity verification, required testing and Play submission remain owner tasks.

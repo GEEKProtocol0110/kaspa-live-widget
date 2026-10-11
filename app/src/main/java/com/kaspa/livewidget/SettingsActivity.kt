@@ -17,6 +17,9 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import com.kaspa.livewidget.data.KaspaNetworkData
 import com.kaspa.livewidget.utils.*
 import com.kaspa.livewidget.widget.*
@@ -62,7 +65,15 @@ class SettingsActivity : Activity() {
             setPadding(dp(16), dp(20), dp(16), dp(24))
         }
         scroll = ScrollView(this).apply { isFillViewport = true; addView(body) }
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         setContentView(scroll)
+        ViewCompat.setOnApplyWindowInsetsListener(scroll) { view, insets ->
+            val safe = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+            // Use the insets themselves so repeated dispatches never accumulate padding.
+            view.setPadding(safe.left, safe.top, safe.right, safe.bottom)
+            insets
+        }
+        ViewCompat.requestApplyInsets(scroll)
         val brand = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
         brand.addView(ImageView(this).apply { setImageResource(R.drawable.kaspa_mark); contentDescription = "Kaspa" },
             LinearLayout.LayoutParams(dp(32), dp(32)))
@@ -112,6 +123,9 @@ class SettingsActivity : Activity() {
         }
         button("Downloads & release notes", R.id.release_notes, help) {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/GEEKProtocol0110/kaspa-live-widget/releases")))
+        }
+        button("Privacy policy", R.id.privacy_policy, help) {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.geekprotocol.xyz/tools/kaspa-widget/privacy/")))
         }
         ready = true
         val selection = object : AdapterView.OnItemSelectedListener {
@@ -233,7 +247,10 @@ class SettingsActivity : Activity() {
             if (light) intArrayOf(0xFFF1FBFA.toInt(), 0xFFC5DEDF.toInt()) else intArrayOf(0xFF050C18.toInt(), 0xFF122835.toInt()))
         window.statusBarColor = if (light) 0xFFF1FBFA.toInt() else 0xFF050C18.toInt()
         window.navigationBarColor = window.statusBarColor
-        window.decorView.systemUiVisibility = if (light) View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR else 0
+        WindowCompat.getInsetsController(window, scroll).apply {
+            isAppearanceLightStatusBars = light
+            isAppearanceLightNavigationBars = light
+        }
         chart.thumbTintList = ColorStateList.valueOf(accent)
         chart.trackTintList = ColorStateList(arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf()),
             intArrayOf(accent, muted))

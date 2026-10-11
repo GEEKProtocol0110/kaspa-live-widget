@@ -9,7 +9,7 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk=[26,34])
+@Config(sdk=[26,34,36])
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class PriceChartTest {
     @Test fun missingInvalidOrSingleObservationNeverDrawsAPriceLine() {

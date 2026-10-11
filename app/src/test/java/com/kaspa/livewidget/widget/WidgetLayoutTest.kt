@@ -32,7 +32,7 @@ import java.time.Duration
 
 /** Inflate through RemoteViews, as a launcher does, rather than an Activity inflater. */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [26, 34])
+@Config(sdk = [26, 34, 36])
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class WidgetLayoutTest {
     @Test fun bothSizesHaveHostDrivenClocksAndReadableRefreshHint() {
