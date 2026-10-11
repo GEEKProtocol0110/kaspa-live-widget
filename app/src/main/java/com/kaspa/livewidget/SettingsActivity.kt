@@ -86,7 +86,7 @@ class SettingsActivity : Activity() {
         previewChoice.setSelection((state?.getInt("preview_size") ?: 0).coerceIn(0, 1))
         preview = FrameLayout(this).apply { id = R.id.widget_preview }
         preview.addOnLayoutChangeListener { _, left, _, right, _, oldLeft, _, oldRight, _ ->
-            if (right - left != oldRight - oldLeft) display()
+            if (right - left != oldRight - oldLeft) preview.post { display() }
         }
         previewCard.addView(preview)
         previewNote = text("", previewCard, "secondary").apply { id = R.id.preview_note }
