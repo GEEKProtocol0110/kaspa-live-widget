@@ -46,6 +46,20 @@ def open_app():
     adb('shell', 'am', 'start', '-W', '-n', PACKAGE + '/com.kaspa.livewidget.SettingsActivity')
     time.sleep(2)
 
+def select_preview(size, label):
+    choice, _ = find('preview_choice')
+    selected = ' '.join(n.get('text', '') for n in choice.iter('node'))
+    if label not in selected:
+        tap('preview_choice')
+        # Native list keyboard selection avoids popup touch-coordinate changes
+        # when the emulator's virtual resolution and system font scale change.
+        keys = ['19', '19'] + (['20'] if size == 'expanded' else []) + ['66']
+        adb('shell', 'input', 'keyevent', *keys)
+        time.sleep(1)
+        choice, _ = find('preview_choice')
+        selected = ' '.join(n.get('text', '') for n in choice.iter('node'))
+    assert label in selected, 'Requested preview size was not selected: ' + selected
+
 def show_whole_preview(size):
     # Accessibility bounds are clipped to the visible window. Compare their
     # height with the thumbnail's complete height before taking the screenshot.
@@ -53,12 +67,14 @@ def show_whole_preview(size):
     width_dp, height_dp = (250, 300) if size == 'expanded' else (140, 180)
     for _ in range(12):
         tree = nodes()
-        frame = next(n for n in tree if n.get('resource-id', '').endswith(':id/widget_preview'))
-        box = bounds(frame); screen = bounds(tree[0])
-        scale = min(1, (box[2] - box[0]) / int(width_dp * density))
-        complete_height = int(int(height_dp * density) * scale) + int(16 * density)
-        if box[3] - box[1] >= complete_height - 2:
-            return
+        frame = next((n for n in tree if n.get('resource-id', '').endswith(':id/widget_preview')), None)
+        screen = bounds(tree[0])
+        if frame is not None:
+            box = bounds(frame)
+            scale = min(1, (box[2] - box[0]) / int(width_dp * density))
+            complete_height = int(int(height_dp * density) * scale) + int(16 * density)
+            if box[3] - box[1] >= complete_height - 2:
+                return
         adb('shell', 'input', 'swipe', str(screen[2] // 2), str(int(screen[3] * .7)),
             str(screen[2] // 2), str(int(screen[3] * .65)), '800')
     raise AssertionError('Whole preview did not fit in the screenshot viewport')
@@ -83,7 +99,7 @@ try:
                 # Each case starts at the top. Bringing a preview footer into view
                 # can scroll its chooser offscreen on the previous case.
                 open_app()
-                tap('preview_choice'); tap(label, True)
+                select_preview(size, label)
                 show_whole_preview(size)
                 name = viewport + '-' + font + '-' + size
                 tree = capture(name)
