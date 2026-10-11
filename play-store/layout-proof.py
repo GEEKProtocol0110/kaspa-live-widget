@@ -32,8 +32,8 @@ def find(target, text=False):
                 return node, box
         screen = bounds(tree[0])
         # Small, slow drags reveal the footer without flinging the clock offscreen.
-        adb('shell', 'input', 'swipe', str(screen[2] // 2), str(int(screen[3] * .7)),
-            str(screen[2] // 2), str(int(screen[3] * .65)), '800')
+        adb('shell', 'input', 'swipe', str(screen[2] // 2), str(int(screen[3] * .85)),
+            str(screen[2] // 2), str(int(screen[3] * .75)), '1000')
     raise AssertionError('Visible control missing: ' + target)
 
 def tap(target, text=False):
@@ -73,10 +73,12 @@ def show_whole_preview(size):
             box = bounds(frame)
             scale = min(1, (box[2] - box[0]) / int(width_dp * density))
             complete_height = int(int(height_dp * density) * scale) + int(16 * density)
-            if box[3] - box[1] >= complete_height - 2:
+            # Accessibility window bounds include the navigation-bar area, while
+            # the ScrollView clips to its safe padding. Keep a clear bottom margin.
+            if box[3] - box[1] >= complete_height - 2 and box[3] <= screen[3] - int(96 * density):
                 return
-        adb('shell', 'input', 'swipe', str(screen[2] // 2), str(int(screen[3] * .7)),
-            str(screen[2] // 2), str(int(screen[3] * .65)), '800')
+        adb('shell', 'input', 'swipe', str(screen[2] // 2), str(int(screen[3] * .85)),
+            str(screen[2] // 2), str(int(screen[3] * .75)), '1000')
     raise AssertionError('Whole preview did not fit in the screenshot viewport')
 
 def capture(name):
