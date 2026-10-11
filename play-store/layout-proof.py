@@ -10,6 +10,7 @@ PACKAGE = 'com.kaspa.livewidget.debug'
 OUT = Path('layout-evidence')
 OUT.mkdir(exist_ok=True)
 checks = []
+geometry = []
 
 def adb(*args):
     return subprocess.check_output(['adb', *args], text=True)
@@ -60,22 +61,33 @@ try:
         time.sleep(8)
         for font in ['1.0', '1.3']:
             adb('shell', 'settings', 'put', 'system', 'font_scale', font)
-            open_app()
             for size, label in [('compact', 'Compact · price & score'), ('expanded', 'Expanded · all readings')]:
+                # Each case starts at the top. Bringing a preview footer into view
+                # can scroll its chooser offscreen on the previous case.
+                open_app()
                 tap('preview_choice'); tap(label, True)
+                find('widget_chart_label')
                 name = viewport + '-' + font + '-' + size
                 tree = capture(name)
-                frame, frame_box = find('widget_preview')
+                def visible(control):
+                    candidates = [n for n in tree if n.get('resource-id', '').endswith(':id/' + control)]
+                    assert len(candidates) == 1, 'Visible control missing: ' + control
+                    node = candidates[0]; box = bounds(node)
+                    assert len(box) == 4 and box[2] > box[0] and box[3] > box[1], control + ' has empty bounds'
+                    return node, box
+                frame, frame_box = visible('widget_preview')
                 for control in ['widget_time', 'widget_price', 'widget_block_height', 'widget_status', 'widget_chart_label']:
-                    node, box = find(control)
+                    node, box = visible(control)
                     assert node.get('text', '').strip(), control + ' has no visible text'
                     assert frame_box[0] <= box[0] < box[2] <= frame_box[2], control + ' extends outside preview'
                 if size == 'expanded':
-                    find('widget_bps'); find('widget_hashrate')
+                    visible('widget_bps'); visible('widget_hashrate')
+                geometry.append({'name': name, 'screen': bounds(tree[0]), 'preview': frame_box})
                 checks.append(name)
                 print('PASS ' + name, flush=True)
 finally:
     capture('final-state')
     (OUT / 'report.json').write_text(json.dumps({'api': adb('shell', 'getprop', 'ro.build.version.sdk').strip(),
-        'checks': checks, 'limits': ['Debug build; real launcher placement and signed update acceptance are separate checks.']}, indent=2))
+        'checks': checks, 'geometry': geometry,
+        'limits': ['Debug build; real launcher placement and signed update acceptance are separate checks.']}, indent=2))
     subprocess.run(['adb', 'shell', 'settings', 'put', 'system', 'font_scale', '1.0'], check=False)
