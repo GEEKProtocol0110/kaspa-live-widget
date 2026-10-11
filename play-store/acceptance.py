@@ -45,6 +45,20 @@ def settle():
         time.sleep(3)
     raise AssertionError('Refresh did not finish in 90 seconds')
 def passed(name): checks.append(name); print('PASS '+name,flush=True)
+def network(enabled):
+    if int(adb('shell','getprop','ro.build.version.sdk').strip()) <= 26:
+        # The API 26 emulator's svc process can exit 137. Use its real Settings
+        # switch instead, then verify the resulting system state.
+        desired = '0' if enabled else '1'
+        if adb('shell','settings','get','global','airplane_mode_on').strip() != desired:
+            adb('shell','am','start','-W','-a','android.settings.AIRPLANE_MODE_SETTINGS')
+            time.sleep(2); tap('Airplane mode','text')
+        assert adb('shell','settings','get','global','airplane_mode_on').strip() == desired
+        open_app()
+    else:
+        state = 'enable' if enabled else 'disable'
+        adb('shell','svc','wifi',state); adb('shell','svc','data',state)
+    time.sleep(3)
 try:
     adb('shell','wm','size','1080x1920'); adb('shell','wm','density','420')
     time.sleep(8)  # Resolution/density changes restart Android UI services on older images.
@@ -59,7 +73,7 @@ try:
     adb('shell','am','force-stop',PACKAGE); open_app(); settings(); passed('Settings survive process restart')
     tap(PACKAGE+':id/refresh_now'); online=settle(); screenshot('online-refresh'); passed('Manual refresh reaches a completed or unavailable state without invented readings')
     # Disable both emulator transports and prove the network is unavailable.
-    adb('shell','svc','wifi','disable'); adb('shell','svc','data','disable'); time.sleep(3)
+    network(False)
     probe=subprocess.run(['adb','shell','ping','-c','1','-W','2','1.1.1.1'],capture_output=True,text=True)
     assert probe.returncode != 0, 'Emulator still has an active network transport'
     before=value('reading_status').splitlines(); tap(PACKAGE+':id/refresh_now'); offline=settle(); after=offline.splitlines()
@@ -67,7 +81,7 @@ try:
     assert len(before)>=2 and len(after)>=2 and before[1] == after[1], 'Offline refresh replaced the saved price/change reading'
     screenshot('offline-refresh'); passed('Offline refresh keeps saved price/change and reports unavailability')
     if '--' in online: passed('Live feed unavailable on this runner; cached value retention beyond placeholder needs device confirmation')
-    adb('shell','svc','wifi','enable'); adb('shell','svc','data','enable')
+    network(True)
     adb('reboot'); adb('wait-for-device')
     for _ in range(60):
         if adb('shell','getprop','sys.boot_completed').strip() == '1': break
