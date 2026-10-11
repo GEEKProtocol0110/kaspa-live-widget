@@ -13,7 +13,7 @@ import org.robolectric.*
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk=[26,34])
+@Config(sdk=[26,34,36])
 class WidgetSettingsTest {
     private val context get() = RuntimeEnvironment.getApplication()
     @Test fun settingsNormalizeAndCurrencyCachesStayIndependent() {

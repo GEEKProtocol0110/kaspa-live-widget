@@ -6,6 +6,9 @@ import android.view.View
 import android.widget.*
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import androidx.core.graphics.Insets
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.work.Configuration
 import androidx.work.testing.SynchronousExecutor
 import androidx.work.testing.WorkManagerTestInitHelper
@@ -27,7 +30,7 @@ import java.time.Duration
 import java.util.concurrent.Executor
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [26, 34], qualifiers = "xhdpi")
+@Config(sdk = [26, 34, 36], qualifiers = "xhdpi")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class SettingsPreviewTest {
     private val context get() = RuntimeEnvironment.getApplication()
@@ -37,6 +40,17 @@ class SettingsPreviewTest {
         WorkManagerTestInitHelper.initializeTestWorkManager(context,
             Configuration.Builder().setTaskExecutor(SynchronousExecutor()).setExecutor(Executor { }).build(),
             WorkManagerTestInitHelper.ExecutorsMode.PRESERVE_EXECUTORS)
+    }
+
+    @Test fun systemInsetsDoNotClipControlsOrAccumulateOnRepeatedDispatch() {
+        Robolectric.buildActivity(SettingsActivity::class.java).setup().use { controller ->
+            val root = controller.get().findViewById<View>(R.id.setup_body).parent as View
+            val insets = WindowInsetsCompat.Builder().setInsets(WindowInsetsCompat.Type.systemBars(), Insets.of(7, 31, 9, 42)).build()
+            repeat(2) { ViewCompat.dispatchApplyWindowInsets(root, insets) }
+            assertEquals(7, root.paddingLeft); assertEquals(31, root.paddingTop)
+            assertEquals(9, root.paddingRight); assertEquals(42, root.paddingBottom)
+            assertNotNull(controller.get().findViewById<Button>(R.id.privacy_policy))
+        }
     }
 
     @Test fun draftPreviewStaysIsolatedSurvivesRotationAndSavesExplicitly() {
