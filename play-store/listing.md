@@ -2,7 +2,7 @@
 
 App name (17/30 characters): **Kaspa Live Widget**
 
-Short description (66/80 characters):
+Short description (69/80 characters):
 **Kaspa price, DAA score and network stats on your Android home screen.**
 
 Full description:
