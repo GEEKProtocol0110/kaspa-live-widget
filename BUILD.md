@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - **Android Studio**: compatible with AGP 8.10.1 or later
-- **JDK**: 8 or later (JDK 11+ recommended)
+- **JDK**: 21 (required for Android 16 Robolectric tests)
 - **Android SDK**: 
   - Compile SDK: API 36 (Android 16)
   - Min SDK: API 26 (Android 8.0)

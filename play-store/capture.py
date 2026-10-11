@@ -28,7 +28,13 @@ adb('shell','wm','size','1080x1920'); adb('shell','wm','density','420')
 adb('shell','settings','put','global','window_animation_scale','0')
 adb('shell','settings','put','global','transition_animation_scale','0')
 adb('shell','am','start','-W','-n',PACKAGE+'/.SettingsActivity'); time.sleep(3)
-tap(PACKAGE+':id/refresh_now', seek=True); time.sleep(20); top()
+tap(PACKAGE+':id/refresh_now', seek=True)
+# Wait for actual public requests; unavailable feeds remain honestly labelled.
+for _ in range(12):
+    time.sleep(5)
+    status = next((n.get('text', '') for n in nodes() if n.get('resource-id') == PACKAGE+':id/reading_status'), '')
+    if status and 'Update queued' not in status and 'Refreshing' not in status: break
+top()
 shot('phone-compact-dark.png')
 tap(PACKAGE+':id/preview_choice'); tap('Expanded · all readings',by='text')
 tap(PACKAGE+':id/appearance_choice',seek=True); tap('Frosted light',by='text')
