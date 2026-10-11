@@ -1,6 +1,6 @@
 # Data-safety review notes — owner approval required in Play Console
 
-Source audit for v1.4.0: only INTERNET and ACCESS_NETWORK_STATE permissions; OkHttp public feed requests; Android WorkManager; preferences and market/network caches; no advertising/analytics/account SDKs. Android backup is enabled. Privacy policy: https://www.geekprotocol.xyz/tools/kaspa-widget/privacy/
+Source review for v1.4.1 at `5bfe3ecc5f8f0e5fbccd43957aa2936ec1a93ce6`: the app manifest explicitly requests INTERNET and ACCESS_NETWORK_STATE; AndroidX WorkManager contributes background-work permissions to the merged manifest. The acceptance artifacts' `current-apk-metadata.txt` records permissions from the actual public APK, not just the source manifest. Dependencies include OkHttp public feed requests, WorkManager, preferences and market/network caches, with no declared advertising/analytics/account SDKs. Android backup is enabled. Privacy policy: https://www.geekprotocol.xyz/tools/kaspa-widget/privacy/
 
 | Area | Observed behavior | Console review |
 | --- | --- | --- |

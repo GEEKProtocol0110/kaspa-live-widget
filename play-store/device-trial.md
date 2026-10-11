@@ -1,14 +1,14 @@
 # Physical-device trial
 
-Automated signed APK acceptance runs the existing public 1.3.0 and 1.4.0 releases on Android API 26 and 36. It checks a fresh install, settings saved before upgrade, process restart, reboot, manual refresh, offline retention and both actual widget-layout previews. Artifacts contain reports, screenshots and view hierarchies. The app release is not changed by these tests. A passing emulator run does not certify a physical launcher or battery policy.
+Automated signed APK acceptance runs the existing public 1.4.0 and 1.4.1 releases on Android API 26 and 36. It checks a fresh install, settings saved before upgrade, process restart, reboot, manual refresh, offline retention and both actual widget-layout previews. Artifacts contain version/hash reports, actual APK permissions and certificates, screenshots and view hierarchies. The v1.4.1 release workflow separately verified a 1.3.0 → 1.4.1 signed update on API 36. The app release is not changed by these tests. A passing emulator run does not certify a physical launcher or battery policy.
 
 Owner record for each phone:
 
 | Item | Record |
 | --- | --- |
 | Device / Android version / launcher | Not yet recorded |
-| Fresh signed 1.4.0 install | Not yet checked |
-| 1.3.0 update keeps settings and both home-screen widgets | Not yet checked |
+| Fresh signed 1.4.1 install | Not yet checked |
+| 1.4.0 update keeps settings and both home-screen widgets | Not yet checked |
 | Compact and expanded placement / resize / portrait / landscape | Not yet checked |
 | GBP and EUR; no USD cache relabeling | Not yet checked |
 | Airplane mode keeps last reading and labels stale/unavailable | Not yet checked |

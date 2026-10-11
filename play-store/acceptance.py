@@ -1,7 +1,9 @@
 """Acceptance of public signed APKs on CI emulators, without seeded market data."""
-import json, re, subprocess, time, xml.etree.ElementTree as ET
+import hashlib, json, re, subprocess, time, xml.etree.ElementTree as ET
 from pathlib import Path
 PACKAGE = 'com.kaspa.livewidget'
+CURRENT_RELEASE = 'v1.4.1'
+PREVIOUS_RELEASE = 'v1.4.0'
 OUT = Path('acceptance-evidence'); OUT.mkdir(exist_ok=True)
 checks = []
 def adb(*args):
@@ -63,13 +65,13 @@ try:
     adb('shell','wm','size','1080x1920'); adb('shell','wm','density','420')
     time.sleep(8)  # Resolution/density changes restart Android UI services on older images.
     adb('install','current/kaspa-live-widget.apk'); open_app()
-    assert 'USD' in value('currency_choice'); screenshot('fresh-install'); passed('Fresh signed 1.4.0 install opens with USD')
+    assert 'USD' in value('currency_choice'); screenshot('fresh-install'); passed(f'Fresh signed {CURRENT_RELEASE} install opens with USD')
     adb('uninstall',PACKAGE); adb('install','previous/kaspa-live-widget.apk'); open_app()
     tap(PACKAGE+':id/appearance_choice'); tap('Frosted light','text')
     tap(PACKAGE+':id/currency_choice'); tap('GBP','text')
     tap(PACKAGE+':id/interval_choice'); tap('30 minutes','text')
     tap(PACKAGE+':id/apply_settings'); settle()
-    adb('install','-r','current/kaspa-live-widget.apk'); open_app(); settings(); screenshot('signed-upgrade'); passed('1.3.0 → 1.4.0 preserves saved GBP, light appearance and 30-minute interval')
+    adb('install','-r','current/kaspa-live-widget.apk'); open_app(); settings(); screenshot('signed-upgrade'); passed(f'{PREVIOUS_RELEASE} → {CURRENT_RELEASE} preserves saved GBP, light appearance and 30-minute interval')
     adb('shell','am','force-stop',PACKAGE); open_app(); settings(); passed('Settings survive process restart')
     tap(PACKAGE+':id/refresh_now'); online=settle(); screenshot('online-refresh'); passed('Manual refresh reaches a completed or unavailable state without invented readings')
     # Disable both emulator transports and prove the network is unavailable.
@@ -97,6 +99,9 @@ finally:
     subprocess.run(['adb','shell','uiautomator','dump','/sdcard/acceptance.xml'],check=False)
     try: screenshot('final-state')
     except (subprocess.CalledProcessError,AssertionError): pass
-    (OUT/'report.json').write_text(json.dumps({'api':adb('shell','getprop','ro.build.version.sdk').strip(),'checks':checks,'limits':['Emulator only: launcher placement/resize, physical battery restrictions and Play delivery require owner devices.']},indent=2))
+    (OUT/'report.json').write_text(json.dumps({'api':adb('shell','getprop','ro.build.version.sdk').strip(),
+        'current_release':CURRENT_RELEASE,'previous_release':PREVIOUS_RELEASE,
+        'current_apk_sha256':hashlib.sha256(Path('current/kaspa-live-widget.apk').read_bytes()).hexdigest(),
+        'checks':checks,'limits':['Emulator only: launcher placement/resize, physical battery restrictions and Play delivery require owner devices.']},indent=2))
     for args in [('shell','svc','wifi','enable'),('shell','svc','data','enable'),('shell','settings','put','system','font_scale','1.0')]:
         subprocess.run(['adb',*args],check=False)
