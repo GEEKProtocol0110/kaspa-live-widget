@@ -42,7 +42,10 @@ class SettingsPreviewTest {
             WorkManagerTestInitHelper.ExecutorsMode.PRESERVE_EXECUTORS)
     }
 
-    @Test fun systemInsetsDoNotClipControlsOrAccumulateOnRepeatedDispatch() {
+    // Typed inset dispatch is modeled directly on Android 11+. Legacy dispatch clamps
+    // navigation insets to the real root-window stable insets, absent in this synthetic fixture.
+    // All other setup/rotation/theme/refresh tests still run on API 26, 34 and 36.
+    @Test @Config(sdk = [34, 36]) fun systemInsetsDoNotClipControlsOrAccumulateOnRepeatedDispatch() {
         Robolectric.buildActivity(SettingsActivity::class.java).setup().use { controller ->
             val root = controller.get().findViewById<View>(R.id.setup_body).parent as View
             val insets = WindowInsetsCompat.Builder().setInsets(WindowInsetsCompat.Type.systemBars(), Insets.of(7, 31, 9, 42)).build()
