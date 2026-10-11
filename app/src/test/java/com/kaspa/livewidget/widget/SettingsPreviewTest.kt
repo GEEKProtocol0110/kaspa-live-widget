@@ -6,6 +6,7 @@ import android.view.View
 import android.widget.*
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.RectF
 import androidx.core.graphics.Insets
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -40,6 +41,41 @@ class SettingsPreviewTest {
         WorkManagerTestInitHelper.initializeTestWorkManager(context,
             Configuration.Builder().setTaskExecutor(SynchronousExecutor()).setExecutor(Executor { }).build(),
             WorkManagerTestInitHelper.ExecutorsMode.PRESERVE_EXECUTORS)
+    }
+
+    @Test fun previewsFitTheirCardOnNarrowAndWideScreensWithLargerText() {
+        val saved = WidgetPreferences("GBP", 30, "light", true)
+        WidgetSettings(context).save(saved)
+        try {
+            for (fontScale in listOf(1f, 1.3f)) {
+                RuntimeEnvironment.setFontScale(fontScale)
+                for (widthDp in listOf(240, 360)) {
+                    Robolectric.buildActivity(SettingsActivity::class.java).setup().use { controller ->
+                        val app = controller.get()
+                        val root = app.findViewById<View>(android.R.id.content)
+                        val density = app.resources.displayMetrics.density
+                        val width = (widthDp * density).toInt(); val height = (640 * density).toInt()
+                        for (size in listOf(0, 1)) {
+                            app.findViewById<Spinner>(R.id.preview_choice).setSelection(size); idle()
+                            repeat(3) {
+                                root.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                                    View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY))
+                                root.layout(0, 0, width, height); idle()
+                            }
+                            val frame = app.findViewById<FrameLayout>(R.id.widget_preview)
+                            val widget = frame.getChildAt(0)
+                            val bounds = RectF(0f, 0f, widget.width.toFloat(), widget.height.toFloat())
+                            widget.matrix.mapRect(bounds); bounds.offset(widget.left.toFloat(), widget.top.toFloat())
+                            assertTrue("Preview cropped: $bounds / ${frame.width}x${frame.height}",
+                                bounds.left >= 0 && bounds.right <= frame.width + 1 && bounds.top >= 0 && bounds.bottom <= frame.height)
+                            assertTrue(widget.width > 0 && widget.height > 0)
+                            assertFalse(widget.isClickable)
+                            assertEquals(saved, WidgetSettings(context).get())
+                        }
+                    }
+                }
+            }
+        } finally { RuntimeEnvironment.setFontScale(1f) }
     }
 
     // Typed inset dispatch is modeled directly on Android 11+. Legacy dispatch clamps

@@ -177,4 +177,4 @@ Chart captions and refresh messages fit the compact widget without losing the fu
 
 ## Google Play preparation
 
-The v1.4.0 release targets Android 16/API 36 and includes a signed Android App Bundle alongside the APK. Store copy, privacy/data review notes, graphics, real-screen capture instructions and the owner submission checklist are in [play-store/](play-store/release-checklist.md). Registration, identity verification, required testing and Play submission remain owner tasks.
+Version 1.4.1 targets Android 16/API 36 and includes a signed Android App Bundle alongside the APK. Store copy, privacy/data review notes, graphics, real-screen capture instructions and the owner submission checklist are in [play-store/](play-store/release-checklist.md). Registration, identity verification, required testing and Play submission remain owner tasks.

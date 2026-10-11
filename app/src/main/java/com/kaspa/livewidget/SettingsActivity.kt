@@ -85,6 +85,9 @@ class SettingsActivity : Activity() {
         previewChoice = select("Preview size", listOf("Compact · price & score", "Expanded · all readings"), R.id.preview_choice, previewCard)
         previewChoice.setSelection((state?.getInt("preview_size") ?: 0).coerceIn(0, 1))
         preview = FrameLayout(this).apply { id = R.id.widget_preview }
+        preview.addOnLayoutChangeListener { _, left, _, right, _, oldLeft, _, oldRight, _ ->
+            if (right - left != oldRight - oldLeft) preview.post { display() }
+        }
         previewCard.addView(preview)
         previewNote = text("", previewCard, "secondary").apply { id = R.id.preview_note }
         val adds = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
@@ -192,21 +195,29 @@ class SettingsActivity : Activity() {
             else -> "Saved ${draft.currency} readings · ${MarketDisplay.historyLabel(market)}"
         }
         val large = previewChoice.selectedItemPosition == 1
-        val key = listOf(draft, large, market, data, status.label(draft.currency), status.inProgress(),
+        val key = listOf(draft, large, preview.width, market, data, status.label(draft.currency), status.inProgress(),
             WidgetFreshness.label(data.copy(price = market.price, priceTimestamp = market.timestamp)),
             WidgetFreshness.hashrateLabel(data), MarketDisplay.change(market), MarketDisplay.chartCaption(market))
         if (key != previewState) {
             previewState = key
             val height = if (large) 300 else 180; val width = if (large) 250 else 140
             val widget = WidgetRenderer.views(this, large, height, width, draft).apply(this, preview)
+            // Keep the actual launcher layout proportions, but fit its thumbnail
+            // inside the measured card rather than cropping a fixed-width preview.
+            val scale = if (preview.width > 0) (preview.width.toFloat() / dp(width)).coerceAtMost(1f) else 1f
+            widget.pivotX = 0f; widget.pivotY = 0f
+            widget.scaleX = scale; widget.scaleY = scale
             fun readOnly(view: View) {
                 view.isClickable = false; view.isFocusable = false
                 if (view is ViewGroup) for (index in 0 until view.childCount) readOnly(view.getChildAt(index))
             }
             readOnly(widget)
             preview.removeAllViews()
-            preview.addView(widget, FrameLayout.LayoutParams(dp(width), dp(height), Gravity.CENTER))
-            preview.layoutParams.height = dp(height + 16)
+            preview.addView(widget, FrameLayout.LayoutParams(dp(width), dp(height), Gravity.TOP or Gravity.LEFT).apply {
+                leftMargin = ((preview.width - dp(width) * scale) / 2).toInt().coerceAtLeast(0)
+                topMargin = dp(8)
+            })
+            preview.layoutParams.height = (dp(height) * scale).toInt() + dp(16)
             preview.requestLayout()
         }
     }

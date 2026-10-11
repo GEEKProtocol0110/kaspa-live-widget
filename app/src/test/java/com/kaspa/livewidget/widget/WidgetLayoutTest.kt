@@ -35,6 +35,50 @@ import java.time.Duration
 @Config(sdk = [26, 34, 36])
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class WidgetLayoutTest {
+    @Test @Config(qualifiers = "xhdpi") fun compactReadingsStayInsideTheirPanelsWithLargerText() {
+        val context = RuntimeEnvironment.getApplication()
+        RuntimeEnvironment.setFontScale(1.3f)
+        try {
+            DataCache(context).saveData(KaspaNetworkData(blockHeight = 563083283))
+            fun inside(parent: ViewGroup) {
+                for (index in 0 until parent.childCount) {
+                    val child = parent.getChildAt(index)
+                    if (child.visibility == View.GONE) continue
+                    assertTrue("${child.id} clipped by parent ${parent.id}: ${child.top}..${child.bottom}/${parent.height}",
+                        child.top >= 0 && child.bottom <= parent.height)
+                    if (child is ViewGroup) inside(child)
+                }
+            }
+            val now = System.currentTimeMillis()
+            val quotes = listOf(MarketData(currency = "GBP"),
+                MarketData(currency = "GBP", price = .0305, timestamp = now),
+                MarketData(currency = "GBP", price = .0305, change24h = -2.36,
+                    timestamp = now, changeTimestamp = now))
+            for (quote in quotes) for (phase in listOf("idle", "running")) {
+                MarketCache(context).save(quote)
+                RefreshStatusCache(context).set(phase, "GBP")
+                val widget = WidgetRenderer.views(context, false, 180, 140,
+                    WidgetPreferences("GBP", 30, "light", true)).apply(context, FrameLayout(context)) as ViewGroup
+                val density = context.resources.displayMetrics.density
+                val width = (140 * density).toInt(); val height = (180 * density).toInt()
+                repeat(2) {
+                    widget.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                        View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY))
+                    widget.layout(0, 0, width, height)
+                    shadowOf(Looper.getMainLooper()).idle()
+                }
+                val score = widget.findViewById<TextView>(R.id.widget_block_height)
+                assertEquals("563,083,283", score.text.toString())
+                assertEquals(0, score.layout.getEllipsisCount(0))
+                val change = widget.findViewById<TextView>(R.id.widget_change)
+                assertEquals(MarketDisplay.change(quote), change.text.toString())
+                assertEquals("Entire change/unavailable message must fit", 0, change.layout.getEllipsisCount(0))
+                checkBounds(widget, height, width)
+                inside(widget)
+            }
+        } finally { RuntimeEnvironment.setFontScale(1f) }
+    }
+
     @Test fun bothSizesHaveHostDrivenClocksAndReadableRefreshHint() {
         val context = RuntimeEnvironment.getApplication()
         Robolectric.buildActivity(Activity::class.java).setup().use { host ->

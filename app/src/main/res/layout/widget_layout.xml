@@ -11,13 +11,13 @@
             <TextClock android:id="@+id/widget_time" style="@style/Widget.Kaspa.Text.Time" android:textSize="14sp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
         </LinearLayout>
         <LinearLayout android:id="@+id/widget_readouts" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="vertical" android:gravity="center_vertical">
-            <LinearLayout android:id="@+id/price_panel" style="@style/Widget.Kaspa.Panel" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="2dp">
-                <TextView android:id="@+id/widget_price" style="@style/Widget.Kaspa.Text.Price" android:autoSizeMaxTextSize="22sp" android:textSize="22sp" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="USD --" android:gravity="center"/>
-                <TextView android:id="@+id/widget_change" style="@style/Widget.Kaspa.Text.Label" android:textSize="9sp" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="24h change unavailable" android:gravity="center"/>
+            <LinearLayout android:id="@+id/price_panel" style="@style/Widget.Kaspa.Panel" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="vertical" android:padding="2dp">
+                <TextView android:id="@+id/widget_price" style="@style/Widget.Kaspa.Text.Price" android:autoSizeMaxTextSize="22sp" android:textSize="22sp" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:text="USD --" android:gravity="center"/>
+                <TextView android:id="@+id/widget_change" style="@style/Widget.Kaspa.Text.Label" android:textSize="9sp" android:maxLines="1" android:ellipsize="end" android:autoSizeTextType="uniform" android:autoSizeMinTextSize="7sp" android:autoSizeMaxTextSize="9sp" android:autoSizeStepGranularity="1sp" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="24h change unavailable" android:gravity="center"/>
             </LinearLayout>
-            <LinearLayout android:id="@+id/network_panel" style="@style/Widget.Kaspa.Panel" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="2dp" android:layout_marginTop="2dp">
+            <LinearLayout android:id="@+id/network_panel" style="@style/Widget.Kaspa.Panel" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="vertical" android:padding="2dp" android:layout_marginTop="2dp">
                 <TextView android:id="@+id/network_panel_label" style="@style/Widget.Kaspa.Text.Label" android:textSize="9sp" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="DAA SCORE"/>
-                <TextView android:id="@+id/widget_block_height" style="@style/Widget.Kaspa.Text.Value" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="--"/>
+                <TextView android:id="@+id/widget_block_height" style="@style/Widget.Kaspa.Text.Value" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:gravity="center_vertical" android:text="--"/>
             </LinearLayout>
         </LinearLayout>
         <TextView android:id="@+id/widget_updated" android:maxLines="1" android:ellipsize="end" style="@style/Widget.Kaspa.Text.Label" android:textSize="9sp" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Waiting for data"/>
