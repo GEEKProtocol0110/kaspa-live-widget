@@ -39,7 +39,7 @@ def settle():
 def passed(name): checks.append(name); print('PASS '+name,flush=True)
 try:
     adb('shell','wm','size','1080x1920'); adb('shell','wm','density','420')
-    adb('logcat','-c')
+    time.sleep(8)  # Resolution/density changes restart Android UI services on older images.
     adb('install','current/kaspa-live-widget.apk'); open_app()
     assert 'USD' in value('currency_choice'); screenshot('fresh-install'); passed('Fresh signed 1.4.0 install opens with USD')
     adb('uninstall',PACKAGE); adb('install','previous/kaspa-live-widget.apk'); open_app()
@@ -73,4 +73,5 @@ try:
     passed('No fatal AndroidRuntime exception during acceptance')
 finally:
     (OUT/'report.json').write_text(json.dumps({'api':adb('shell','getprop','ro.build.version.sdk').strip(),'checks':checks,'limits':['Emulator only: launcher placement/resize, physical battery restrictions and Play delivery require owner devices.']},indent=2))
-    adb('shell','svc','wifi','enable'); adb('shell','svc','data','enable'); adb('shell','settings','put','system','font_scale','1.0')
+    for args in [('shell','svc','wifi','enable'),('shell','svc','data','enable'),('shell','settings','put','system','font_scale','1.0')]:
+        subprocess.run(['adb',*args],check=False)
