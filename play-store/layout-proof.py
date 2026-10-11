@@ -31,8 +31,9 @@ def find(target, text=False):
             if match and len(box) == 4 and box[2] > box[0] and box[3] > box[1]:
                 return node, box
         screen = bounds(tree[0])
-        adb('shell', 'input', 'swipe', str(screen[2] // 2), str(int(screen[3] * .8)),
-            str(screen[2] // 2), str(int(screen[3] * .3)), '250')
+        # Small, slow drags reveal the footer without flinging the clock offscreen.
+        adb('shell', 'input', 'swipe', str(screen[2] // 2), str(int(screen[3] * .7)),
+            str(screen[2] // 2), str(int(screen[3] * .65)), '800')
     raise AssertionError('Visible control missing: ' + target)
 
 def tap(target, text=False):
