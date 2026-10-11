@@ -1,0 +1,65 @@
+name: Signed APK acceptance
+on:
+  pull_request:
+    paths: ['play-store/**', '.github/workflows/acceptance.yml']
+  push:
+    branches: [main]
+    paths: ['play-store/**', '.github/workflows/acceptance.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  device:
+    name: Android ${{ matrix.api }} release acceptance
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [26, 36]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: temurin
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools build-tools;35.0.0'
+      - name: Verify public release downloads and matching signing identity
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir current previous
+          gh release download v1.4.0 --repo "$GITHUB_REPOSITORY" --pattern kaspa-live-widget.apk --pattern SHA256SUMS --dir current
+          gh release download v1.3.0 --repo "$GITHUB_REPOSITORY" --pattern kaspa-live-widget.apk --pattern SHA256SUMS --dir previous
+          for folder in current previous; do
+            (cd "$folder" && grep 'kaspa-live-widget.apk$' SHA256SUMS | sha256sum --check --strict)
+          done
+          echo 'd8242d1fa3975edfddc50cfae06a083a0e6925c95f7e0a0682ff50fe660f6df0  current/kaspa-live-widget.apk' | sha256sum --check --strict
+          signer="$ANDROID_SDK_ROOT/build-tools/35.0.0/apksigner"
+          cert() { "$signer" verify --print-certs "$1" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p'; }
+          old=$(cert previous/kaspa-live-widget.apk)
+          test -n "$old"
+          test "$old" = "$(cert current/kaspa-live-widget.apk)"
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Exercise real signed releases
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          script: python3 play-store/acceptance.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: acceptance-api-${{ matrix.api }}
+          path: acceptance-evidence/
+          retention-days: 30

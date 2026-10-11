@@ -17,3 +17,7 @@ References checked October 11, 2026:
 - https://support.google.com/googleplay/android-developer/answer/14151465
 - https://support.google.com/googleplay/android-developer/answer/10787469
 - https://support.google.com/googleplay/android-developer/answer/9866151
+
+## Release acceptance evidence
+
+[Signed APK acceptance](../.github/workflows/acceptance.yml) tests fresh install and a real signed 1.3.0 → 1.4.0 update on API 26 and 36, preserving GBP/light/30-minute settings before and after process restart and reboot. It also exercises manual/offline refresh and actual compact/expanded previews. Download each run’s artifacts for the report and screenshots. Physical launcher resize, battery restrictions and Play-delivered updates remain in the [device trial worksheet](device-trial.md). These steps are not marked complete merely because CI passed.

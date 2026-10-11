@@ -36,6 +36,10 @@ Chart points come from CoinGecko’s real 24-hour series, refreshed at most once
 
 The [signed public APK](https://github.com/GEEKProtocol0110/kaspa-live-widget/releases/latest/download/kaspa-live-widget.apk) is available without a GitHub account. See [SIGNED_RELEASES.md](SIGNED_RELEASES.md) for release verification and maintainer signing instructions.
 
+## Release acceptance
+
+[Automated signed APK checks](https://github.com/GEEKProtocol0110/kaspa-live-widget/actions/workflows/acceptance.yml) exercise Android 8 and Android 16 installs, upgrades, saved settings, restart/reboot and offline behavior. See the [physical-device trial](play-store/device-trial.md) and [Play checklist](play-store/release-checklist.md) for remaining owner checks. This widget is a companion to [GEEK HQ](https://www.geekprotocol.xyz/).
+
 ## Widget Layouts
 
 ### 2x2 Widget (Quick Glance)
