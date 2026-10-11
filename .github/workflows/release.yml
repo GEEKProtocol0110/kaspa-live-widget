@@ -3,6 +3,16 @@ name: Signed release
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Version tag matching the current main app version'
+        required: true
+        default: 'v1.4.0'
+        type: string
+
+env:
+  RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
 
 permissions:
   contents: read
@@ -21,9 +31,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event_name == 'workflow_dispatch' && 'main' || github.ref }}
       - uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: temurin
           cache: gradle
       - uses: android-actions/setup-android@v4
@@ -38,7 +49,7 @@ jobs:
           import os, re
           text = open('app/build.gradle.kts').read()
           version = re.search(r'versionName = "([0-9]+\.[0-9]+\.[0-9]+)"', text).group(1)
-          assert os.environ['GITHUB_REF_NAME'] == 'v' + version, 'Tag must match the app version'
+          assert os.environ['RELEASE_TAG'] == 'v' + version, 'Tag must match the app version'
           PY
       - name: Restore persistent signing key
         env:
@@ -104,7 +115,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          gh release create "$GITHUB_REF_NAME" release/kaspa-live-widget.apk release/kaspa-live-widget.aab release/SHA256SUMS --verify-tag --generate-notes --title "Kaspa Live Widget $GITHUB_REF_NAME" --notes "Install kaspa-live-widget.apk on Android 8+. kaspa-live-widget.aab is the signed Google Play upload bundle targeting Android 16 (API 36). Future signed releases update this app while keeping settings and widgets. Permanent URL: https://github.com/$GITHUB_REPOSITORY/releases/latest/download/kaspa-live-widget.apk"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # Manual release is built from main, with tag creation only after verification.
+            git rev-parse HEAD > "$RUNNER_TEMP/release-head.txt"
+            gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$RELEASE_TAG" -f sha="$(cat "$RUNNER_TEMP/release-head.txt")"
+          fi
+          gh release create "$RELEASE_TAG" release/kaspa-live-widget.apk release/kaspa-live-widget.aab release/SHA256SUMS --verify-tag --generate-notes --title "Kaspa Live Widget $RELEASE_TAG" --notes "Install kaspa-live-widget.apk on Android 8+. kaspa-live-widget.aab is the signed Google Play upload bundle targeting Android 16 (API 36). Future signed releases update this app while keeping settings and widgets. Permanent URL: https://github.com/$GITHUB_REPOSITORY/releases/latest/download/kaspa-live-widget.apk"
       - name: Remove signing material
         if: always()
         run: rm -f "$RUNNER_TEMP/widget-release.jks"
@@ -118,14 +134,14 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: temurin
       - name: Download signed update and previous public APK
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p current previous
-          gh release download "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --pattern kaspa-live-widget.apk --dir current
+          gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --pattern kaspa-live-widget.apk --dir current
           gh release download v1.3.0 --repo "$GITHUB_REPOSITORY" --pattern kaspa-live-widget.apk --dir previous
       - name: Enable emulator acceleration
         run: |
@@ -152,4 +168,4 @@ jobs:
       - name: Attach store screenshots to release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "$GITHUB_REF_NAME" store-screenshots/*.png --repo "$GITHUB_REPOSITORY" --clobber
+        run: gh release upload "$RELEASE_TAG" store-screenshots/*.png --repo "$GITHUB_REPOSITORY" --clobber

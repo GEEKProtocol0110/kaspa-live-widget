@@ -40,3 +40,7 @@ Version-specific releases remain available from the Releases page. The app’s D
 Set all four signing environment variables (`WIDGET_KEYSTORE_PATH`, `WIDGET_STORE_PASSWORD`, `WIDGET_KEY_ALIAS`, `WIDGET_KEY_PASSWORD`) and run `./gradlew assembleRelease`. With none set, local/PR builds stay unsigned. Partial configuration fails at configuration time. Use Android SDK `apksigner verify --print-certs` to inspect a signed APK. The signing identity is owned by the maintainer; this repository does not contain a private signing key.
 
 Android’s signing requirements: https://developer.android.com/studio/publish/app-signing
+
+## Google Play bundle releases
+
+v1.4.0 targets API 36 and includes a signed AAB, APK and checksums. The release workflow uses JDK 21 because Android 16 Robolectric tests require it. You can run **Signed release → Run workflow** on main with the tag matching the app version; it creates the new tag only after build/test/lint and both signing certificates pass. Never reuse a published version tag. The real-device screenshot job installs the previous APK and verifies the signed update on Android 16. Play registration, signing-key import and submission follow [the owner checklist](play-store/release-checklist.md).
