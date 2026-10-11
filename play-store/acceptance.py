@@ -16,6 +16,8 @@ def locate(identifier, by='resource-id', seek=True):
                 box = list(map(int,re.findall(r'\d+',n.get('bounds',''))))
                 if len(box) == 4 and box[2] > box[0] and box[3] > box[1]: return n,box
         if seek: adb('shell','input','swipe','540','1600','540','500','250'); time.sleep(.4)
+    tree=adb('shell','cat','/sdcard/acceptance.xml'); (OUT/'missing-control.xml').write_text(tree);
+    screenshot('missing-control'); print(tree,flush=True)
     raise AssertionError('Control not visible: '+identifier)
 def tap(identifier, by='resource-id'):
     _,b=locate(identifier,by); adb('shell','input','tap',str((b[0]+b[2])//2),str((b[1]+b[3])//2)); time.sleep(.7)
@@ -72,6 +74,9 @@ try:
     assert 'FATAL EXCEPTION' not in adb('logcat','-d','-s','AndroidRuntime:E'), 'Android app crashed'
     passed('No fatal AndroidRuntime exception during acceptance')
 finally:
+    subprocess.run(['adb','shell','uiautomator','dump','/sdcard/acceptance.xml'],check=False)
+    try: screenshot('final-state')
+    except (subprocess.CalledProcessError,AssertionError): pass
     (OUT/'report.json').write_text(json.dumps({'api':adb('shell','getprop','ro.build.version.sdk').strip(),'checks':checks,'limits':['Emulator only: launcher placement/resize, physical battery restrictions and Play delivery require owner devices.']},indent=2))
     for args in [('shell','svc','wifi','enable'),('shell','svc','data','enable'),('shell','settings','put','system','font_scale','1.0')]:
         subprocess.run(['adb',*args],check=False)
