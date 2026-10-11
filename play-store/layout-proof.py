@@ -46,6 +46,23 @@ def open_app():
     adb('shell', 'am', 'start', '-W', '-n', PACKAGE + '/com.kaspa.livewidget.SettingsActivity')
     time.sleep(2)
 
+def show_whole_preview(size):
+    # Accessibility bounds are clipped to the visible window. Compare their
+    # height with the thumbnail's complete height before taking the screenshot.
+    density = int(re.findall(r'density:\s*(\d+)', adb('shell', 'wm', 'density'))[-1]) / 160
+    width_dp, height_dp = (250, 300) if size == 'expanded' else (140, 180)
+    for _ in range(12):
+        tree = nodes()
+        frame = next(n for n in tree if n.get('resource-id', '').endswith(':id/widget_preview'))
+        box = bounds(frame); screen = bounds(tree[0])
+        scale = min(1, (box[2] - box[0]) / int(width_dp * density))
+        complete_height = int(int(height_dp * density) * scale) + int(16 * density)
+        if box[3] - box[1] >= complete_height - 2:
+            return
+        adb('shell', 'input', 'swipe', str(screen[2] // 2), str(int(screen[3] * .7)),
+            str(screen[2] // 2), str(int(screen[3] * .65)), '800')
+    raise AssertionError('Whole preview did not fit in the screenshot viewport')
+
 def capture(name):
     tree = nodes()
     (OUT / (name + '.xml')).write_text(adb('shell', 'cat', '/sdcard/layout.xml'))
@@ -67,7 +84,7 @@ try:
                 # can scroll its chooser offscreen on the previous case.
                 open_app()
                 tap('preview_choice'); tap(label, True)
-                find('widget_chart_label')
+                show_whole_preview(size)
                 name = viewport + '-' + font + '-' + size
                 tree = capture(name)
                 def visible(control):
