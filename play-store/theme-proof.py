@@ -52,9 +52,11 @@ def color(control, value):
     ui.adb('shell', 'input', 'keyevent', '4')  # Hide the keyboard, retaining the dialog.
     # Exercise an actual user slider event, not just programmatic RGB updates.
     _, blue = ui.find('color_blue')
-    ui.adb('shell', 'input', 'tap', str(blue[2] - 1), str((blue[1] + blue[3]) // 2))
+    target_blue = '00' if value[-2:].upper() == 'FF' else 'FF'
+    slider_x = blue[0] + 1 if target_blue == '00' else blue[2] - 1
+    ui.adb('shell', 'input', 'tap', str(slider_x), str((blue[1] + blue[3]) // 2))
     input_node, _ = ui.find('color_hex')
-    assert input_node.get('text', '').upper() == '#' + value[:4].upper() + 'FF', 'RGB slider did not update hex'
+    assert input_node.get('text', '').upper() == '#' + value[:4].upper() + target_blue, 'RGB slider did not update hex: ' + input_node.get('text', '')
     ui.tap('color_hex')
     ui.adb('shell', 'input', 'keyevent', '123', *(['67'] * 7))
     ui.adb('shell', 'input', 'text', value)
