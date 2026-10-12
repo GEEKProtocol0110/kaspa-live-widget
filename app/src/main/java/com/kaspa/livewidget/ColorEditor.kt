@@ -63,6 +63,8 @@ internal object ColorEditor {
             .setView(ScrollView(activity).apply { addView(body) })
             .setNegativeButton("Cancel", null).setPositiveButton("Use color", null).create()
         dialog.show()
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).isAllCaps = false
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).isAllCaps = false
         dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
             val color = parse(input.text.toString())
