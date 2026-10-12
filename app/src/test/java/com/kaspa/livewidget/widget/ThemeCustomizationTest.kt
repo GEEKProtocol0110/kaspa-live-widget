@@ -121,11 +121,13 @@ class ThemeCustomizationTest {
             val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
             widget.draw(Canvas(bitmap))
             if (theme == "xray") {
-                for (y in 0 until height) for (x in 0 until width) {
-                    val pixel = bitmap.getPixel(x, y)
-                    assertEquals("Colored pixel in X-ray theme at $x,$y", Color.red(pixel), Color.green(pixel))
-                    assertEquals(Color.red(pixel), Color.blue(pixel))
+                val pixels = IntArray(width * height)
+                bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
+                val colored = pixels.indexOfFirst {
+                    val red = (it ushr 16) and 255
+                    red != ((it ushr 8) and 255) || red != (it and 255)
                 }
+                assertEquals("Colored pixel in X-ray theme at index $colored", -1, colored)
             } else {
                 val pixel = bitmap.getPixel(width / 2, height - 20)
                 assertTrue("Custom background must retain its purple hue", Color.blue(pixel) > Color.green(pixel))

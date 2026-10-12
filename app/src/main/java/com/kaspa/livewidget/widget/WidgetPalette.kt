@@ -18,13 +18,20 @@ internal data class WidgetPalette(val background: Int, val text: Int, val accent
         }
         // Recolor the mark's teal silhouette and white cutout separately so its
         // shape stays recognizable, rather than tinting it into a solid disk.
-        for (y in 0 until 64) for (x in 0 until 64) {
-            val pixel = image.getPixel(x, y)
-            if (Color.alpha(pixel) == 0) continue
-            val amount = ((255 - Color.red(pixel)) / 144f).coerceIn(0f, 1f)
-            image.setPixel(x, y, ColorUtils.setAlphaComponent(
-                ColorUtils.blendARGB(background, accent, amount), Color.alpha(pixel)))
+        val pixels = IntArray(64 * 64)
+        image.getPixels(pixels, 0, 64, 0, 0, 64, 64)
+        for (i in pixels.indices) {
+            val pixel = pixels[i]
+            if ((pixel ushr 24) == 0) continue
+            val amount = ((255 - ((pixel ushr 16) and 255)) / 144f).coerceIn(0f, 1f)
+            fun channel(shift: Int): Int {
+                val start = (background ushr shift) and 255
+                val end = (accent ushr shift) and 255
+                return (start + (end - start) * amount).toInt()
+            }
+            pixels[i] = (pixel and 0xFF000000.toInt()) or (channel(16) shl 16) or (channel(8) shl 8) or channel(0)
         }
+        image.setPixels(pixels, 0, 64, 0, 0, 64, 64)
         return image
     }
 
