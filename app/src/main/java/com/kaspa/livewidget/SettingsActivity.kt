@@ -20,6 +20,7 @@ import android.widget.*
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.graphics.ColorUtils
 import com.kaspa.livewidget.data.KaspaNetworkData
 import com.kaspa.livewidget.utils.*
 import com.kaspa.livewidget.widget.*
@@ -39,6 +40,12 @@ class SettingsActivity : Activity() {
     private lateinit var preview: FrameLayout
     private lateinit var applyButton: Button
     private lateinit var refreshButton: Button
+    private lateinit var colorControls: LinearLayout
+    private lateinit var colorNote: TextView
+    private lateinit var backgroundColorButton: Button
+    private lateinit var textColorButton: Button
+    private lateinit var accentColorButton: Button
+    private var draftColors = WidgetColors()
     private var activeTheme = "dark"
     private var ready = false
     private var previewState: List<Any?>? = null
@@ -47,9 +54,10 @@ class SettingsActivity : Activity() {
         override fun run() { display(); handler.postDelayed(this, 2000L) }
     }
     private val light get() = activeTheme == "light"
-    private val ink get() = if (light) Color.rgb(12, 43, 55) else Color.rgb(222, 255, 249)
-    private val muted get() = if (light) Color.rgb(47, 77, 85) else Color.rgb(181, 218, 219)
-    private val accent get() = if (light) Color.rgb(9, 86, 91) else Color.rgb(120, 255, 224)
+    private val xray get() = activeTheme == "xray"
+    private val ink get() = if (xray) Color.WHITE else if (light) Color.rgb(12, 43, 55) else Color.rgb(222, 255, 249)
+    private val muted get() = if (xray) Color.LTGRAY else if (light) Color.rgb(47, 77, 85) else Color.rgb(181, 218, 219)
+    private val accent get() = if (xray) Color.WHITE else if (light) Color.rgb(9, 86, 91) else Color.rgb(120, 255, 224)
     private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
 
     override fun onCreate(state: Bundle?) {
@@ -58,7 +66,11 @@ class SettingsActivity : Activity() {
         val draft = WidgetPreferences(state?.getString("draft_currency") ?: saved.currency,
             state?.takeIf { it.containsKey("draft_interval") }?.getLong("draft_interval") ?: saved.intervalMinutes,
             state?.getString("draft_theme") ?: saved.theme,
-            state?.takeIf { it.containsKey("draft_chart") }?.getBoolean("draft_chart") ?: saved.showChart).normalized()
+            state?.takeIf { it.containsKey("draft_chart") }?.getBoolean("draft_chart") ?: saved.showChart,
+            WidgetColors(state?.getInt("draft_background", saved.customColors.background) ?: saved.customColors.background,
+                state?.getInt("draft_text", saved.customColors.text) ?: saved.customColors.text,
+                state?.getInt("draft_accent", saved.customColors.accent) ?: saved.customColors.accent)).normalized()
+        draftColors = draft.customColors
         activeTheme = draft.theme
         body = LinearLayout(this).apply {
             id = R.id.setup_body; orientation = LinearLayout.VERTICAL
@@ -75,7 +87,7 @@ class SettingsActivity : Activity() {
         }
         ViewCompat.requestApplyInsets(scroll)
         val brand = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
-        brand.addView(ImageView(this).apply { setImageResource(R.drawable.kaspa_mark); contentDescription = "Kaspa" },
+        brand.addView(ImageView(this).apply { id = R.id.setup_logo; setImageResource(R.drawable.kaspa_mark); contentDescription = "Kaspa" },
             LinearLayout.LayoutParams(dp(32), dp(32)))
         text("Kaspa Live Widget", brand, "title").apply { textSize = 22f; setPadding(dp(10), 0, 0, 0) }
         body.addView(brand)
@@ -99,11 +111,24 @@ class SettingsActivity : Activity() {
         text("Adding a widget saves these choices. Settings apply to all your Kaspa widgets.", previewCard, "secondary")
 
         val preferences = section("MAKE IT YOURS")
-        appearance = select("Appearance", listOf("Neon dark", "Frosted light"), R.id.appearance_choice, preferences)
+        appearance = select("Appearance", listOf("Neon dark", "Frosted light", "X-ray · black & white", "Custom colors"), R.id.appearance_choice, preferences)
+        colorControls = LinearLayout(this).apply { id = R.id.color_controls; orientation = LinearLayout.VERTICAL; preferences.addView(this) }
+        text("Choose a background, text and accent color. The accent colors the chart, clock and price.", colorControls, "secondary")
+        backgroundColorButton = button("", R.id.color_background, colorControls) {
+            ColorEditor.show(this, "Background color", draftColors.background) { draftColors = draftColors.copy(background = it); display() }
+        }
+        textColorButton = button("", R.id.color_text, colorControls) {
+            ColorEditor.show(this, "Text color", draftColors.text) { draftColors = draftColors.copy(text = it); display() }
+        }
+        accentColorButton = button("", R.id.color_accent, colorControls) {
+            ColorEditor.show(this, "Accent color", draftColors.accent) { draftColors = draftColors.copy(accent = it); display() }
+        }
+        button("Reset custom colors", R.id.reset_colors, colorControls) { draftColors = WidgetColors(); display() }
+        colorNote = text("", colorControls, "secondary").apply { accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE }
         currency = select("Price currency", WidgetPreferences.CURRENCIES, R.id.currency_choice, preferences)
         interval = select("Background refresh", WidgetPreferences.INTERVALS.map { "$it minutes" }, R.id.interval_choice, preferences)
         chart = Switch(this).apply {
-            id = R.id.chart_choice; text = "Neon 24-hour chart"; minHeight = dp(48); tag = "control"
+            id = R.id.chart_choice; text = "24-hour chart"; minHeight = dp(48); tag = "control"
             preferences.addView(this)
         }
         currency.setSelection(WidgetPreferences.CURRENCIES.indexOf(draft.currency))
@@ -145,6 +170,7 @@ class SettingsActivity : Activity() {
         val draft = selected()
         state.putString("draft_currency", draft.currency); state.putLong("draft_interval", draft.intervalMinutes)
         state.putString("draft_theme", draft.theme); state.putBoolean("draft_chart", draft.showChart)
+        state.putInt("draft_background", draftColors.background); state.putInt("draft_text", draftColors.text); state.putInt("draft_accent", draftColors.accent)
         state.putInt("preview_size", previewChoice.selectedItemPosition)
         state.putBoolean("help_open", findViewById<View>(R.id.source_help).visibility == View.VISIBLE)
         super.onSaveInstanceState(state)
@@ -153,7 +179,7 @@ class SettingsActivity : Activity() {
     override fun onPause() { handler.removeCallbacks(update); super.onPause() }
 
     private fun selected() = WidgetPreferences(WidgetPreferences.CURRENCIES[currency.selectedItemPosition],
-        WidgetPreferences.INTERVALS[interval.selectedItemPosition], WidgetPreferences.THEMES[appearance.selectedItemPosition], chart.isChecked)
+        WidgetPreferences.INTERVALS[interval.selectedItemPosition], WidgetPreferences.THEMES[appearance.selectedItemPosition], chart.isChecked, draftColors)
 
     private fun save() {
         val selected = selected()
@@ -179,6 +205,14 @@ class SettingsActivity : Activity() {
         if (!ready) return
         val saved = WidgetSettings(this).get(); val draft = selected()
         if (activeTheme != draft.theme) { activeTheme = draft.theme; paintScreen() }
+        colorControls.visibility = if (draft.theme == "custom") View.VISIBLE else View.GONE
+        backgroundColorButton.text = "Background · ${ColorEditor.hex(draftColors.background)}"
+        textColorButton.text = "Text · ${ColorEditor.hex(draftColors.text)}"
+        accentColorButton.text = "Accent · ${ColorEditor.hex(draftColors.accent)}"
+        colorNote.text = if (ColorUtils.calculateContrast(draftColors.text, draftColors.background) < 4.5 ||
+            ColorUtils.calculateContrast(draftColors.accent, draftColors.background) < 4.5)
+            "Low contrast in this palette. Choose lighter or darker text/accent colors to make readings easier to see."
+            else "Preview your colors above. Apply settings to save them for all widgets."
         val status = RefreshStatusCache(this).get()
         val savedMarket = MarketCache(this).get(saved.currency)
         reading.text = "${saved.currency} · ${status.label(saved.currency)}\n${MarketDisplay.price(savedMarket)} · ${MarketDisplay.change(savedMarket)}\n${WidgetFreshness.label(savedMarket.timestamp)}\n${savedMarket.source.ifBlank { "No price feed saved yet" }}"
@@ -238,7 +272,7 @@ class SettingsActivity : Activity() {
             adapter = object : ArrayAdapter<String>(this@SettingsActivity, android.R.layout.simple_spinner_dropdown_item, entries) {
                 private fun style(view: View) = (view as TextView).apply {
                     setTextColor(ink); textSize = 15f; typeface = Typeface.MONOSPACE
-                    setBackgroundColor(if (light) Color.rgb(226, 245, 243) else Color.rgb(18, 40, 53))
+                    setBackgroundColor(if (xray) Color.rgb(24,24,24) else if (light) Color.rgb(226, 245, 243) else Color.rgb(18, 40, 53))
                 }
                 override fun getView(position: Int, convertView: View?, parent: ViewGroup): View =
                     style(super.getView(position, convertView, parent)).apply { text = "${getItem(position)}  ▾" }
@@ -255,8 +289,12 @@ class SettingsActivity : Activity() {
     }
     private fun paintScreen() {
         scroll.background = GradientDrawable(GradientDrawable.Orientation.TL_BR,
-            if (light) intArrayOf(0xFFF1FBFA.toInt(), 0xFFC5DEDF.toInt()) else intArrayOf(0xFF050C18.toInt(), 0xFF122835.toInt()))
-        window.statusBarColor = if (light) 0xFFF1FBFA.toInt() else 0xFF050C18.toInt()
+            if (xray) intArrayOf(Color.BLACK, 0xFF181818.toInt()) else if (light) intArrayOf(0xFFF1FBFA.toInt(), 0xFFC5DEDF.toInt()) else intArrayOf(0xFF050C18.toInt(), 0xFF122835.toInt()))
+        window.statusBarColor = if (xray) Color.BLACK else if (light) 0xFFF1FBFA.toInt() else 0xFF050C18.toInt()
+        findViewById<ImageView>(R.id.setup_logo).apply {
+            if (xray) setImageBitmap(WidgetPalette.from(WidgetPreferences(theme = "xray")).logo(this@SettingsActivity))
+            else setImageResource(R.drawable.kaspa_mark)
+        }
         window.navigationBarColor = window.statusBarColor
         WindowCompat.getInsetsController(window, scroll).apply {
             isAppearanceLightStatusBars = light
@@ -274,10 +312,10 @@ class SettingsActivity : Activity() {
             })
             if (view.tag in listOf("card", "control", "button", "primary")) {
                 val shape = GradientDrawable().apply {
-                    setColor(if (light) 0xA8FFFFFF.toInt() else 0xB0182D42.toInt()); cornerRadius = dp(14).toFloat()
-                    setStroke(dp(1), if (light) 0x80609597.toInt() else 0x6080E6DE)
+                    setColor(if (xray) 0xD0181818.toInt() else if (light) 0xA8FFFFFF.toInt() else 0xB0182D42.toInt()); cornerRadius = dp(14).toFloat()
+                    setStroke(dp(1), if (xray) 0x80FFFFFF.toInt() else if (light) 0x80609597.toInt() else 0x6080E6DE)
                 }
-                view.background = if (view is Button) RippleDrawable(ColorStateList.valueOf(0x3080E6DE), shape, null) else shape
+                view.background = if (view is Button) RippleDrawable(ColorStateList.valueOf(if (xray) 0x30FFFFFF else 0x3080E6DE), shape, null) else shape
             }
             if (view is Spinner) (view.adapter as? ArrayAdapter<*>)?.notifyDataSetChanged()
             if (view is ViewGroup) for (index in 0 until view.childCount) paint(view.getChildAt(index))

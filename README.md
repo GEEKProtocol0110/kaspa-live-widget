@@ -177,4 +177,8 @@ Chart captions and refresh messages fit the compact widget without losing the fu
 
 ## Google Play preparation
 
-Version 1.4.1 targets Android 16/API 36 and includes a signed Android App Bundle alongside the APK. Store copy, privacy/data review notes, graphics, real-screen capture instructions and the owner submission checklist are in [play-store/](play-store/release-checklist.md). Registration, identity verification, required testing and Play submission remain owner tasks.
+Version 1.4.2 targets Android 16/API 36 and includes a signed Android App Bundle alongside the APK. Store copy, privacy/data review notes, graphics, real-screen capture instructions and the owner submission checklist are in [play-store/](play-store/release-checklist.md). Registration, identity verification, required testing and Play submission remain owner tasks.
+
+### X-ray and custom colors
+
+In setup, choose **X-ray · black & white** for monochrome glass, or **Custom colors** to edit the background, text and accent using RGB sliders or `#RRGGBB`. The accent controls the chart, price, clock and Kaspa mark. Preview changes first, then tap **Apply settings** (or Save & add) to update both widget sizes. Custom colors stay saved when you switch presets. **Reset custom colors** restores the default palette; low contrast shows a readability hint.
