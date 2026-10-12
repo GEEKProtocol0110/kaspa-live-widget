@@ -11,6 +11,24 @@ spec.loader.exec_module(ui)
 ui.OUT = Path('theme-evidence'); ui.OUT.mkdir(exist_ok=True)
 checks = []
 
+def find(target, text=False):
+    for _ in range(12):
+        tree = ui.nodes()
+        for node in tree:
+            match = node.get('text') == target if text else node.get('resource-id', '').endswith(':id/' + target)
+            box = ui.bounds(node)
+            if match and len(box) == 4 and box[2] > box[0] and box[3] > box[1]: return node, box
+        screen = ui.bounds(tree[0])
+        # Scroll in the outer gutter: a drag starting on a Spinner is consumed
+        # by that control and does not reveal the lower editor/save controls.
+        x = str(int(screen[0] + (screen[2] - screen[0]) * .96))
+        start = str(int(screen[1] + (screen[3] - screen[1]) * .8))
+        end = str(int(screen[1] + (screen[3] - screen[1]) * .52))
+        ui.adb('shell', 'input', 'swipe', x, start, x, end, '700')
+    raise AssertionError('Visible control missing: ' + target)
+
+ui.find = find
+
 def top():
     screen = ui.bounds(ui.nodes()[0])
     for _ in range(6):
