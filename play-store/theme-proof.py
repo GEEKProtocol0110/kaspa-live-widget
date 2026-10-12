@@ -31,8 +31,17 @@ def color(control, value):
     time.sleep(1)
     input_node, _ = ui.find('color_hex')
     assert input_node.get('text', '').upper() == value.upper()
-    ui.capture('editor-' + control)
     ui.adb('shell', 'input', 'keyevent', '4')  # Hide the keyboard, retaining the dialog.
+    # Exercise an actual user slider event, not just programmatic RGB updates.
+    _, blue = ui.find('color_blue')
+    ui.adb('shell', 'input', 'tap', str(blue[2] - 1), str((blue[1] + blue[3]) // 2))
+    input_node, _ = ui.find('color_hex')
+    assert input_node.get('text', '').upper() == '#' + value[:4].upper() + 'FF', 'RGB slider did not update hex'
+    ui.tap('color_hex')
+    ui.adb('shell', 'input', 'keyevent', '123', *(['67'] * 7))
+    ui.adb('shell', 'input', 'text', value)
+    ui.adb('shell', 'input', 'keyevent', '4')
+    ui.capture('editor-' + control)
     ui.tap('Use color', text=True)
 
 def preferences():
