@@ -91,10 +91,19 @@ jobs:
           target: google_apis
           arch: x86_64
           disable-animations: true
-          script: python3 play-store/layout-proof.py
+          script: |
+            python3 play-store/layout-proof.py
+            python3 play-store/theme-proof.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: layout-api-${{ matrix.api }}
           path: layout-evidence/
+          retention-days: 30
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: theme-api-${{ matrix.api }}
+          path: theme-evidence/
           retention-days: 30
