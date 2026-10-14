@@ -45,7 +45,7 @@ public enum FeedParser {
         return true
     }
     public static func network(_ data: Data, previous: NetworkReading?, at now: Date) -> NetworkReading? {
-        guard let n = try? JSONDecoder().decode(DAG.self, from: data), n.networkName == "mainnet", n.blockCount > 0, n.virtualDaaScore > 0 else { return nil }
+        guard let n = try? JSONDecoder().decode(DAG.self, from: data), ["mainnet", "kaspa-mainnet"].contains(n.networkName), n.blockCount > 0, n.virtualDaaScore > 0 else { return nil }
         return NetworkReading(score: n.virtualDaaScore, count: n.blockCount, time: now,
             bps: NetworkReading.rate(previous: previous, count: n.blockCount, at: now))
     }

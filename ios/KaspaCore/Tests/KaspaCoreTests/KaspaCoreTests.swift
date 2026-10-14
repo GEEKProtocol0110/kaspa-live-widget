@@ -27,7 +27,10 @@ final class KaspaCoreTests: XCTestCase {
         let previous = NetworkReading(score: 1, count: 100, time: now.addingTimeInterval(-60), bps: nil)
         let n = FeedParser.network(data("{\"networkName\":\"mainnet\",\"blockCount\":700,\"virtualDaaScore\":999}"), previous: previous, at: now)
         XCTAssertEqual(n?.bps, 10); XCTAssertEqual(n?.score, 999)
+        let official = FeedParser.network(data("{\"networkName\":\"kaspa-mainnet\",\"blockCount\":700,\"virtualDaaScore\":999}"), previous: previous, at: now)
+        XCTAssertEqual(official?.bps, 10); XCTAssertEqual(official?.score, 999)
         XCTAssertNil(FeedParser.network(data("{\"networkName\":\"testnet-10\",\"blockCount\":700,\"virtualDaaScore\":999}"), previous: previous, at: now))
+        XCTAssertNil(FeedParser.network(data("{\"networkName\":\"kaspa-testnet-10\",\"blockCount\":700,\"virtualDaaScore\":999}"), previous: previous, at: now))
         XCTAssertNil(NetworkReading.rate(previous: nil, count: 700, at: now))
         XCTAssertNil(NetworkReading.rate(previous: previous, count: 90, at: now))
         XCTAssertNil(NetworkReading.rate(previous: previous, count: 700, at: now.addingTimeInterval(86_400)))
@@ -96,7 +99,7 @@ final class KaspaCoreTests: XCTestCase {
         let config = URLSessionConfiguration.ephemeral; config.protocolClasses = [FixtureProtocol.self]
         let session = URLSession(configuration: config); defer { session.invalidateAndCancel() }
         FixtureProtocol.configure([
-            "/info/blockdag": data("{\"networkName\":\"mainnet\",\"blockCount\":700,\"virtualDaaScore\":999}"),
+            "/info/blockdag": data("{\"networkName\":\"kaspa-mainnet\",\"blockCount\":700,\"virtualDaaScore\":999}"),
             "/info/hashrate": data("{\"hashrate\":344150}")])
         var old = Snapshot(); old.quote = Quote(price: 0.03, change: nil, time: now.addingTimeInterval(-100), source: "CoinGecko · USD")
         old.network = NetworkReading(score: 1, count: 100, time: now.addingTimeInterval(-60), bps: nil)
