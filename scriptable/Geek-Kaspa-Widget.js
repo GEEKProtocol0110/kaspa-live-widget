@@ -268,7 +268,7 @@ function background(snapshot, options, family, now) {
 function header(widget, theme, family, now) {
   const row = widget.addStack(); row.centerAlignContent();
   const logo = row.addImage(Image.fromData(Data.fromBase64String(KASPA_MARK)));
-  logo.imageSize = new Size(21, 21);
+  logo.imageSize = new Size(family === "large" ? 21 : 19, family === "large" ? 21 : 19);
   row.addSpacer(6); text(row, "KASPA", 12, theme.accent, true);
   row.addSpacer();
   if (family === "small") text(row, "GEEK", 7, theme.text, true);
@@ -277,19 +277,19 @@ function header(widget, theme, family, now) {
     date.font = Font.mediumSystemFont(11); date.textColor = new Color(theme.text);
   }
 }
-function metric(parent, label, value, detail, theme, valueSize) {
+function metric(parent, label, value, detail, theme, valueSize, compact) {
   const stack = parent.addStack(); stack.layoutVertically();
-  text(stack, label, 9, theme.accent, false); stack.addSpacer(3);
+  text(stack, label, compact ? 8 : 9, theme.accent, false); stack.addSpacer(3);
   text(stack, value, valueSize || 17, theme.text, true); stack.addSpacer(2);
-  text(stack, detail, 9, theme.text, false);
+  text(stack, detail, compact ? 8 : 9, theme.text, false);
   return stack;
 }
 function buildWidget(snapshot, options, family, now) {
   const theme = THEMES[options.theme], widget = new ListWidget();
-  widget.setPadding(10, 12, 10, 12);
+  widget.setPadding(family === "large" ? 10 : 8, 12, family === "large" ? 10 : 8, 12);
   widget.backgroundImage = background(snapshot, options, family, now);
   widget.refreshAfterDate = new Date(now + options.refresh * MINUTE);
-  header(widget, theme, family, now); widget.addSpacer(7);
+  header(widget, theme, family, now); widget.addSpacer(family === "large" ? 7 : 5);
   const isApprox = snapshot.quote && snapshot.quote.source.indexOf("KuCoin") === 0;
   if (family === "small") {
     text(widget, (isApprox ? "≈ " : "") + priceText(snapshot.quote), 25, theme.accent, true);
@@ -302,13 +302,13 @@ function buildWidget(snapshot, options, family, now) {
   } else {
     const priceRow = widget.addStack(); priceRow.layoutHorizontally();
     const price = priceRow.addStack(); price.layoutVertically();
-    text(price, (isApprox ? "KAS / USDT ≈ USD" : "KAS / USD"), 9, theme.text, false);
-    text(price, priceText(snapshot.quote), family === "large" ? 35 : 29, theme.accent, true);
-    text(price, changeText(snapshot.quote), 11, theme.text, false);
-    text(price, ageLabel(snapshot.quote, now), 9, theme.text, false);
+    text(price, (isApprox ? "KAS / USDT ≈ USD" : "KAS / USD"), family === "large" ? 9 : 8, theme.text, false);
+    text(price, priceText(snapshot.quote), family === "large" ? 35 : 26, theme.accent, true);
+    text(price, changeText(snapshot.quote), family === "large" ? 11 : 10, theme.text, false);
+    text(price, ageLabel(snapshot.quote, now), family === "large" ? 9 : 8, theme.text, false);
     priceRow.addSpacer(12);
     if (family === "medium") metric(priceRow, "DAA SCORE", scoreText(snapshot.network, true),
-      ageLabel(snapshot.network, now), theme, 14);
+      ageLabel(snapshot.network, now), theme, 14, true);
     widget.addSpacer();
     if (family === "large") {
       text(widget, chartLabel(snapshot, options, now), 9, theme.accent, false);
@@ -317,11 +317,11 @@ function buildWidget(snapshot, options, family, now) {
       widget.addSpacer(12);
     }
     const stats = widget.addStack();
-    metric(stats, "BLOCK RATE", bpsText(snapshot.network), ageLabel(snapshot.network, now), theme, 12);
+    metric(stats, "BLOCK RATE", bpsText(snapshot.network), ageLabel(snapshot.network, now), theme, family === "large" ? 12 : 11, family !== "large");
     stats.addSpacer();
-    metric(stats, "HASHRATE", hashText(snapshot.hash), ageLabel(snapshot.hash, now), theme, 12);
+    metric(stats, "HASHRATE", hashText(snapshot.hash), ageLabel(snapshot.hash, now), theme, family === "large" ? 12 : 11, family !== "large");
   }
-  widget.addSpacer(5);
+  widget.addSpacer(3);
   const chart = chartLabel(snapshot, options, now);
   let footer = family === "small" ? chart.replace("24h USD chart", "24h chart") :
     family === "large" ? "Geek Protocol · " + (snapshot.quote ? snapshot.quote.source : "Waiting for price") : chart;
