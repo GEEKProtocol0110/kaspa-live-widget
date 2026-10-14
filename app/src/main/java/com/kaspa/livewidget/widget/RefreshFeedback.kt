@@ -8,7 +8,8 @@ internal object RefreshFeedback {
     fun caption(status: RefreshStatus, market: MarketData, data: KaspaNetworkData,
                 offline: Boolean, now: Long = System.currentTimeMillis()): String {
         if (status.inProgress(now)) return status.label(market.currency, now)
-        if (offline || status.phase == "offline") return "Offline · tap to retry"
+        if (offline) return "Offline · retry"
+        if (status.phase == "offline") return "Tap to retry"
         val phase = status.label(market.currency, now)
         if (status.phase in listOf("queued", "running", "partial", "unavailable", "interrupted") || status.currency != market.currency)
             return when (phase) {
@@ -20,9 +21,9 @@ internal object RefreshFeedback {
         val networkTime = data.networkTimestamp.takeIf { it > 0 } ?: data.timestamp
         return when {
             market.timestamp <= 0 || market.timestamp > now || !market.price.isFinite() || market.price <= 0 -> "Waiting for price"
-            now - market.timestamp > 30 * 60_000L -> "Price stale · tap to retry"
+            now - market.timestamp > 30 * 60_000L -> "Price stale"
             data.blockHeight <= 0 || networkTime <= 0 || networkTime > now -> "Waiting for network"
-            now - networkTime > 30 * 60_000L -> "Network stale · retry"
+            now - networkTime > 30 * 60_000L -> "Network stale"
             else -> phase
         }
     }
