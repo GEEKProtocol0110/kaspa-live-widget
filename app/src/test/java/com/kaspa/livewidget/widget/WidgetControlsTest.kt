@@ -123,6 +123,7 @@ class WidgetControlsTest {
         assertEquals("Price stale · tap to retry", RefreshFeedback.caption(complete, market.copy(timestamp = 1000), network, false, now))
         assertEquals("Network stale · retry", RefreshFeedback.caption(complete, market, network.copy(networkTimestamp = 1000), false, now))
         assertEquals("Tap to retry", RefreshFeedback.caption(RefreshStatus("running", 1000), market, network, false, now))
+        assertEquals("Some feeds delayed", RefreshFeedback.caption(RefreshStatus("partial", now - 1), market, network, false, now))
         assertEquals("Refreshing…", RefreshFeedback.caption(RefreshStatus("running", now - 1), market, network, false, now))
         assertEquals("Waiting for price", RefreshFeedback.caption(complete, MarketData(), network, false, now))
         assertTrue(RefreshFeedback.ages(market, network, now).contains("less than a minute"))
