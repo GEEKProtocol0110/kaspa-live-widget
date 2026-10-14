@@ -2,6 +2,8 @@
 
 # Kaspa Live Widget
 
+Native iPhone support is being developed in [`ios/`](ios/README.md): a SwiftUI app and three WidgetKit sizes. This source is not a public iPhone download. Apple signing, physical-device acceptance and TestFlight distribution are still required; the Android APK remains Android-only.
+
 [![License](https://img.shields.io/github/license/GEEKProtocol0110/kaspa-live-widget)](LICENSE)
 [![Android](https://img.shields.io/badge/Android-8.0%2B-green.svg)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-1.8-blue.svg)](https://kotlinlang.org)

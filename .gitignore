@@ -51,3 +51,18 @@ google-services.json
 *.jks
 *.keystore
 release-cert.der
+
+# Generated Apple projects, build outputs and signing artifacts
+ios/*.xcodeproj/
+ios/KaspaCore/.build/
+ios/KaspaCore/.swiftpm/
+ios/build/
+ios/evidence/
+ios/*-simulator.zip
+ios/**/*.entitlements
+ios/App/Info.plist
+ios/Widget/Info.plist
+ios/**/__pycache__/
+*.ipa
+*.p12
+*.mobileprovision
