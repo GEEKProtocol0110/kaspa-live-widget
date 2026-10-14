@@ -6,7 +6,25 @@ public enum FeedParser {
     private struct Exchange: Decodable { let code: String; let data: Ticker }
     private struct Ticker: Decodable { let last: String; let changeRate: String?; let time: Double }
     private struct History: Decodable { let prices: [[Double]] }
-    private struct DAG: Decodable { let networkName: String; let blockCount: UInt64; let virtualDaaScore: UInt64 }
+    // The REST server declares protobuf uint64 fields as decimal strings.
+    // Accept native JSON integers too, without lossy Double conversion.
+    private struct DAG: Decodable {
+        let networkName: String; let blockCount: UInt64; let virtualDaaScore: UInt64
+        enum CodingKeys: String, CodingKey { case networkName, blockCount, virtualDaaScore }
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            networkName = try c.decode(String.self, forKey: .networkName)
+            func integer(_ key: CodingKeys) throws -> UInt64 {
+                if let value = try? c.decode(UInt64.self, forKey: key) { return value }
+                let text = try c.decode(String.self, forKey: key)
+                guard !text.isEmpty, text.count <= 20, text.utf8.allSatisfy({ $0 >= 48 && $0 <= 57 }), let value = UInt64(text) else {
+                    throw DecodingError.dataCorruptedError(forKey: key, in: c, debugDescription: "Expected bounded unsigned decimal integer")
+                }
+                return value
+            }
+            blockCount = try integer(.blockCount); virtualDaaScore = try integer(.virtualDaaScore)
+        }
+    }
     private struct Hash: Decodable { let hashrate: Double }
     public static func quote(_ data: Data, at now: Date) -> Quote? {
         guard let q = try? JSONDecoder().decode(CG.self, from: data).kaspa else { return nil }

@@ -27,7 +27,7 @@ final class KaspaCoreTests: XCTestCase {
         let previous = NetworkReading(score: 1, count: 100, time: now.addingTimeInterval(-60), bps: nil)
         let n = FeedParser.network(data("{\"networkName\":\"mainnet\",\"blockCount\":700,\"virtualDaaScore\":999}"), previous: previous, at: now)
         XCTAssertEqual(n?.bps, 10); XCTAssertEqual(n?.score, 999)
-        let official = FeedParser.network(data("{\"networkName\":\"kaspa-mainnet\",\"blockCount\":700,\"virtualDaaScore\":999}"), previous: previous, at: now)
+        let official = FeedParser.network(data("{\"networkName\":\"kaspa-mainnet\",\"blockCount\":\"700\",\"virtualDaaScore\":\"999\"}"), previous: previous, at: now)
         XCTAssertEqual(official?.bps, 10); XCTAssertEqual(official?.score, 999)
         XCTAssertNil(FeedParser.network(data("{\"networkName\":\"testnet-10\",\"blockCount\":700,\"virtualDaaScore\":999}"), previous: previous, at: now))
         XCTAssertNil(FeedParser.network(data("{\"networkName\":\"kaspa-testnet-10\",\"blockCount\":700,\"virtualDaaScore\":999}"), previous: previous, at: now))
@@ -35,6 +35,15 @@ final class KaspaCoreTests: XCTestCase {
         XCTAssertNil(NetworkReading.rate(previous: previous, count: 90, at: now))
         XCTAssertNil(NetworkReading.rate(previous: previous, count: 700, at: now.addingTimeInterval(86_400)))
         XCTAssertNil(NetworkReading.rate(previous: previous, count: 700, at: previous.time.addingTimeInterval(1)))
+    }
+    func testRESTDecimalCountersRejectSignsFractionsBooleansAndOverflow() {
+        for value in ["-1", "+1", "1.5", "1e3", "18446744073709551616", "", " 700", "７００"] {
+            let payload = try! JSONSerialization.data(withJSONObject: ["networkName": "kaspa-mainnet", "blockCount": value, "virtualDaaScore": "999"])
+            XCTAssertNil(FeedParser.network(payload, previous: nil, at: now))
+        }
+        XCTAssertNil(FeedParser.network(data("{\"networkName\":\"kaspa-mainnet\",\"blockCount\":true,\"virtualDaaScore\":\"999\"}"), previous: nil, at: now))
+        let max = FeedParser.network(data("{\"networkName\":\"kaspa-mainnet\",\"blockCount\":\"18446744073709551615\",\"virtualDaaScore\":\"18446744073709551615\"}"), previous: nil, at: now)
+        XCTAssertEqual(max?.count, UInt64.max); XCTAssertEqual(max?.score, UInt64.max)
     }
     func testHashrateUnitsAndMissingValues() {
         XCTAssertEqual(FeedParser.hashrate(data("{\"hashrate\":344150}"), at: now)?.display, "344.15 PH/s")
@@ -99,7 +108,7 @@ final class KaspaCoreTests: XCTestCase {
         let config = URLSessionConfiguration.ephemeral; config.protocolClasses = [FixtureProtocol.self]
         let session = URLSession(configuration: config); defer { session.invalidateAndCancel() }
         FixtureProtocol.configure([
-            "/info/blockdag": data("{\"networkName\":\"kaspa-mainnet\",\"blockCount\":700,\"virtualDaaScore\":999}"),
+            "/info/blockdag": data("{\"networkName\":\"kaspa-mainnet\",\"blockCount\":\"700\",\"virtualDaaScore\":\"999\"}"),
             "/info/hashrate": data("{\"hashrate\":344150}")])
         var old = Snapshot(); old.quote = Quote(price: 0.03, change: nil, time: now.addingTimeInterval(-100), source: "CoinGecko · USD")
         old.network = NetworkReading(score: 1, count: 100, time: now.addingTimeInterval(-60), bps: nil)
