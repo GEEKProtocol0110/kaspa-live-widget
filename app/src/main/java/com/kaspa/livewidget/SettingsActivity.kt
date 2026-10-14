@@ -1,6 +1,8 @@
 package com.kaspa.livewidget
 
 import android.app.Activity
+import android.app.AlertDialog
+import android.text.InputFilter
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Intent
@@ -45,6 +47,10 @@ class SettingsActivity : Activity() {
     private lateinit var backgroundColorButton: Button
     private lateinit var textColorButton: Button
     private lateinit var accentColorButton: Button
+    private val detailColors = mutableMapOf<String, Button>()
+    private lateinit var intensity: SeekBar
+    private lateinit var intensityLabel: TextView
+    private lateinit var presetNote: TextView
     private var draftColors = WidgetColors()
     private var activeTheme = "dark"
     private var ready = false
@@ -69,7 +75,10 @@ class SettingsActivity : Activity() {
             state?.takeIf { it.containsKey("draft_chart") }?.getBoolean("draft_chart") ?: saved.showChart,
             WidgetColors(state?.getInt("draft_background", saved.customColors.background) ?: saved.customColors.background,
                 state?.getInt("draft_text", saved.customColors.text) ?: saved.customColors.text,
-                state?.getInt("draft_accent", saved.customColors.accent) ?: saved.customColors.accent)).normalized()
+                state?.getInt("draft_accent", saved.customColors.accent) ?: saved.customColors.accent,
+                draftColor(state, "clock", saved.customColors.clock), draftColor(state, "price", saved.customColors.price),
+                draftColor(state, "chart_color", saved.customColors.chart), draftColor(state, "network", saved.customColors.network)),
+            state?.getInt("draft_intensity", saved.chartIntensity) ?: saved.chartIntensity).normalized()
         draftColors = draft.customColors
         activeTheme = draft.theme
         body = LinearLayout(this).apply {
@@ -113,7 +122,7 @@ class SettingsActivity : Activity() {
         val preferences = section("MAKE IT YOURS")
         appearance = select("Appearance", listOf("Neon dark", "Frosted light", "X-ray · black & white", "Custom colors"), R.id.appearance_choice, preferences)
         colorControls = LinearLayout(this).apply { id = R.id.color_controls; orientation = LinearLayout.VERTICAL; preferences.addView(this) }
-        text("Choose a background, text and accent color. The accent colors the chart, clock and price.", colorControls, "secondary")
+        text("Start with background, text and accent, then give the clock, price, chart or network readings their own color.", colorControls, "secondary")
         backgroundColorButton = button("", R.id.color_background, colorControls) {
             ColorEditor.show(this, "Background color", draftColors.background) { draftColors = draftColors.copy(background = it); display() }
         }
@@ -123,8 +132,31 @@ class SettingsActivity : Activity() {
         accentColorButton = button("", R.id.color_accent, colorControls) {
             ColorEditor.show(this, "Accent color", draftColors.accent) { draftColors = draftColors.copy(accent = it); display() }
         }
+        for ((key, title, id) in listOf(Triple("clock", "Clock", R.id.color_clock), Triple("price", "Price", R.id.color_price),
+            Triple("chart", "Chart", R.id.color_chart), Triple("network", "Network stats", R.id.color_network))) {
+            detailColors[key] = button(title, id, colorControls) {
+                ColorEditor.show(this, "$title color", detailColor(key)) { color ->
+                    draftColors = when (key) {
+                        "clock" -> draftColors.copy(clock = color)
+                        "price" -> draftColors.copy(price = color)
+                        "chart" -> draftColors.copy(chart = color)
+                        else -> draftColors.copy(network = color)
+                    }
+                    display()
+                }
+            }
+        }
+        button("Use accent/text for all readings", R.id.link_colors, colorControls) {
+            draftColors = draftColors.copy(clock = null, price = null, chart = null, network = null); display()
+        }
         button("Reset custom colors", R.id.reset_colors, colorControls) { draftColors = WidgetColors(); display() }
         colorNote = text("", colorControls, "secondary").apply { accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE }
+        val styles = section("SAVED LOOKS")
+        presetNote = text("", styles, "secondary").apply { id = R.id.preset_note }
+        button("Save this look", R.id.save_preset, styles) { savePreset() }
+        button("Load a saved look", R.id.load_preset, styles) { choosePreset(false) }
+        button("Delete a saved look", R.id.delete_preset, styles) { choosePreset(true) }
+        text("Looks store appearance, colors and chart intensity on this device. Loading previews a draft; Apply settings updates your widgets.", styles, "secondary")
         currency = select("Price currency", WidgetPreferences.CURRENCIES, R.id.currency_choice, preferences)
         interval = select("Background refresh", WidgetPreferences.INTERVALS.map { "$it minutes" }, R.id.interval_choice, preferences)
         chart = Switch(this).apply {
@@ -135,6 +167,16 @@ class SettingsActivity : Activity() {
         interval.setSelection(WidgetPreferences.INTERVALS.indexOf(draft.intervalMinutes))
         appearance.setSelection(WidgetPreferences.THEMES.indexOf(draft.theme))
         chart.isChecked = draft.showChart
+        intensityLabel = text("", preferences, "secondary").apply { id = R.id.intensity_label; labelFor = R.id.chart_intensity }
+        intensity = SeekBar(this).apply {
+            id = R.id.chart_intensity; max = 100; progress = draft.chartIntensity; contentDescription = "Chart intensity"
+            preferences.addView(this, LinearLayout.LayoutParams(-1, dp(48)))
+        }
+        intensity.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(view: SeekBar?, value: Int, fromUser: Boolean) { if (ready) display() }
+            override fun onStartTrackingTouch(view: SeekBar?) = Unit
+            override fun onStopTrackingTouch(view: SeekBar?) = Unit
+        })
         draftFeedback = text("", preferences, "secondary").apply { id = R.id.draft_feedback; accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE }
         applyButton = button("Apply settings", R.id.apply_settings, preferences, true) { save() }
 
@@ -171,6 +213,9 @@ class SettingsActivity : Activity() {
         state.putString("draft_currency", draft.currency); state.putLong("draft_interval", draft.intervalMinutes)
         state.putString("draft_theme", draft.theme); state.putBoolean("draft_chart", draft.showChart)
         state.putInt("draft_background", draftColors.background); state.putInt("draft_text", draftColors.text); state.putInt("draft_accent", draftColors.accent)
+        for ((key, color) in listOf("clock" to draftColors.clock, "price" to draftColors.price,
+            "chart_color" to draftColors.chart, "network" to draftColors.network)) if (color != null) state.putInt("draft_$key", color)
+        state.putInt("draft_intensity", intensity.progress)
         state.putInt("preview_size", previewChoice.selectedItemPosition)
         state.putBoolean("help_open", findViewById<View>(R.id.source_help).visibility == View.VISIBLE)
         super.onSaveInstanceState(state)
@@ -178,8 +223,52 @@ class SettingsActivity : Activity() {
     override fun onResume() { super.onResume(); handler.removeCallbacks(update); handler.post(update) }
     override fun onPause() { handler.removeCallbacks(update); super.onPause() }
 
+    private fun draftColor(state: Bundle?, key: String, fallback: Int?): Int? =
+        if (state != null) { if (state.containsKey("draft_$key")) state.getInt("draft_$key") else null } else fallback
+
+    private fun detailColor(key: String) = when (key) {
+        "clock" -> draftColors.clock ?: draftColors.accent
+        "price" -> draftColors.price ?: draftColors.accent
+        "chart" -> draftColors.chart ?: draftColors.accent
+        else -> draftColors.network ?: draftColors.text
+    }
+
+    private fun savePreset() {
+        val input = EditText(this).apply { id = R.id.preset_name; hint = "Look name"; setSingleLine(); filters = arrayOf(InputFilter.LengthFilter(32)) }
+        val dialog = AlertDialog.Builder(this).setTitle("Save this look")
+            .setMessage("Save up to 20 looks. Using an existing name replaces that look.")
+            .setView(input).setNegativeButton("Cancel", null).setPositiveButton("Save look", null).create()
+        dialog.show(); dialog.getButton(AlertDialog.BUTTON_POSITIVE).isAllCaps = false
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            if (WidgetPresets(this).save(input.text.toString(), selected())) {
+                dialog.dismiss(); display(); Toast.makeText(this, "Look saved on this device", Toast.LENGTH_SHORT).show()
+            } else input.error = "Enter a name; at 20 looks, replace an existing name or delete one."
+        }
+    }
+
+    private fun choosePreset(delete: Boolean) {
+        val presets = WidgetPresets(this).all()
+        if (presets.isEmpty()) { Toast.makeText(this, "Save a look first", Toast.LENGTH_SHORT).show(); return }
+        AlertDialog.Builder(this).setTitle(if (delete) "Delete a saved look" else "Load a saved look")
+            .setItems(presets.map { it.name }.toTypedArray()) { _, index ->
+                val preset = presets[index]
+                if (delete) AlertDialog.Builder(this).setTitle("Delete ${preset.name}?")
+                    .setMessage("Your applied widget settings will stay as they are.")
+                    .setNegativeButton("Cancel", null).setPositiveButton("Delete look") { _, _ ->
+                        WidgetPresets(this).delete(preset.name); display()
+                    }.show()
+                else {
+                    val draft = preset.applyTo(selected())
+                    draftColors = draft.customColors
+                    appearance.setSelection(WidgetPreferences.THEMES.indexOf(draft.theme))
+                    intensity.progress = draft.chartIntensity; display()
+                    Toast.makeText(this, "Look loaded · Apply settings to use it", Toast.LENGTH_SHORT).show()
+                }
+            }.setNegativeButton("Cancel", null).show()
+    }
+
     private fun selected() = WidgetPreferences(WidgetPreferences.CURRENCIES[currency.selectedItemPosition],
-        WidgetPreferences.INTERVALS[interval.selectedItemPosition], WidgetPreferences.THEMES[appearance.selectedItemPosition], chart.isChecked, draftColors)
+        WidgetPreferences.INTERVALS[interval.selectedItemPosition], WidgetPreferences.THEMES[appearance.selectedItemPosition], chart.isChecked, draftColors, intensity.progress)
 
     private fun save() {
         val selected = selected()
@@ -209,13 +298,21 @@ class SettingsActivity : Activity() {
         backgroundColorButton.text = "Background · ${ColorEditor.hex(draftColors.background)}"
         textColorButton.text = "Text · ${ColorEditor.hex(draftColors.text)}"
         accentColorButton.text = "Accent · ${ColorEditor.hex(draftColors.accent)}"
+        for ((key, button) in detailColors) button.text = "${if (key == "network") "Network stats" else key.replaceFirstChar { it.uppercase() }} · ${ColorEditor.hex(detailColor(key))}"
+        intensityLabel.text = "Chart intensity · ${intensity.progress}% · ${if (intensity.progress == 0) "hidden" else if (intensity.progress <= 50) "subtle" else "bright"}"
+        intensity.contentDescription = "Chart intensity ${intensity.progress} percent"
+        intensity.isEnabled = chart.isChecked; intensity.alpha = if (chart.isChecked) 1f else .45f
+        presetNote.text = "${WidgetPresets(this).all().size}/20 saved looks · Saving a look does not apply widget settings."
         colorNote.text = if (ColorUtils.calculateContrast(draftColors.text, draftColors.background) < 4.5 ||
-            ColorUtils.calculateContrast(draftColors.accent, draftColors.background) < 4.5)
+            listOf(draftColors.accent, detailColor("clock"), detailColor("price"), detailColor("network"))
+                .any { ColorUtils.calculateContrast(it, draftColors.background) < 4.5 })
             "Low contrast in this palette. Choose lighter or darker text/accent colors to make readings easier to see."
             else "Preview your colors above. Apply settings to save them for all widgets."
         val status = RefreshStatusCache(this).get()
         val savedMarket = MarketCache(this).get(saved.currency)
-        reading.text = "${saved.currency} · ${status.label(saved.currency)}\n${MarketDisplay.price(savedMarket)} · ${MarketDisplay.change(savedMarket)}\n${WidgetFreshness.label(savedMarket.timestamp)}\n${savedMarket.source.ifBlank { "No price feed saved yet" }}"
+        val savedNetwork = DataCache(this).getCachedData() ?: KaspaNetworkData()
+        val feedback = RefreshFeedback.caption(status, savedMarket, savedNetwork, ConnectionState.offline(this))
+        reading.text = "${saved.currency} · $feedback\n${MarketDisplay.price(savedMarket)} · ${MarketDisplay.change(savedMarket)}\n${WidgetFreshness.label(savedMarket.timestamp)}\n${savedMarket.source.ifBlank { "No price feed saved yet" }}\n${RefreshFeedback.ages(savedMarket, savedNetwork)}\nTap Refresh to retry; an outage keeps the last saved readings."
         val dirty = draft != saved
         draftFeedback.text = if (dirty) "Unsaved changes · Apply settings to update all widgets." else "Your choices are saved for all widgets."
         applyButton.isEnabled = dirty; applyButton.alpha = if (dirty) 1f else .55f
@@ -225,11 +322,11 @@ class SettingsActivity : Activity() {
         val data = DataCache(this).getCachedData() ?: KaspaNetworkData()
         previewNote.text = when {
             market.timestamp <= 0 -> "No saved ${draft.currency} quote yet. Apply settings, then refresh."
-            !draft.showChart -> "Preview uses saved ${draft.currency} readings. Chart is off."
+            !draft.showChart || draft.chartIntensity == 0 -> "Preview uses saved ${draft.currency} readings. Chart is off."
             else -> "Saved ${draft.currency} readings · ${MarketDisplay.historyLabel(market)}"
         }
         val large = previewChoice.selectedItemPosition == 1
-        val key = listOf(draft, large, preview.width, market, data, status.label(draft.currency), status.inProgress(),
+        val key = listOf(draft, large, preview.width, market, data, status.label(draft.currency), status.inProgress(), ConnectionState.offline(this),
             WidgetFreshness.label(data.copy(price = market.price, priceTimestamp = market.timestamp)),
             WidgetFreshness.hashrateLabel(data), MarketDisplay.change(market), MarketDisplay.chartCaption(market))
         if (key != previewState) {

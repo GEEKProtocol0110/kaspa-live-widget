@@ -12,7 +12,7 @@ ui.OUT = Path('theme-evidence'); ui.OUT.mkdir(exist_ok=True)
 checks = []
 
 def find(target, text=False):
-    for _ in range(12):
+    for _ in range(30):
         tree = ui.nodes()
         for node in tree:
             match = node.get('text') == target if text else node.get('resource-id', '').endswith(':id/' + target)
@@ -31,7 +31,7 @@ ui.find = find
 
 def top():
     screen = ui.bounds(ui.nodes()[0])
-    for _ in range(6):
+    for _ in range(12):
         ui.adb('shell', 'input', 'swipe', str(int(screen[2] * .96)), str(int(screen[3] * .25)),
             str(int(screen[2] * .96)), str(int(screen[3] * .8)), '500')
 
@@ -84,19 +84,40 @@ try:
     passed('Saved X-ray theme renders both actual previews after process restart')
     appearance(3, 'Custom colors')
     color('color_background', '140C24'); color('color_text', 'F5F5FF'); color('color_accent', 'FF4FD8')
+    color('color_clock', '80E8FF'); color('color_price', 'FFDF80')
+    color('color_chart', 'D38CFF'); color('color_network', 'C0FFC0')
+    _, slider = ui.find('chart_intensity')
+    ui.adb('shell', 'input', 'tap', str(slider[0] + (slider[2] - slider[0]) // 4), str((slider[1] + slider[3]) // 2))
+    node, _ = ui.find('chart_intensity')
+    chosen_intensity = int(node.get('content-desc').split()[-2])
+    assert 0 < chosen_intensity < 50
+    ui.capture('chart-intensity')
+    ui.tap('save_preset'); ui.tap('preset_name'); ui.adb('shell', 'input', 'text', 'Night')
+    ui.adb('shell', 'input', 'keyevent', '4'); ui.tap('Save look', text=True)
+    ui.capture('saved-look')
     # Preview changes do not persist until the explicit save action.
     assert preferences()['theme'] == 'xray'
-    ui.tap('apply_settings')
+    top(); ui.tap('apply_settings')
     saved = preferences()
-    expected = {'color_background': '140C24', 'color_text': 'F5F5FF', 'color_accent': 'FF4FD8'}
+    expected = {'color_background': '140C24', 'color_text': 'F5F5FF', 'color_accent': 'FF4FD8', 'color_clock': '80E8FF', 'color_price': 'FFDF80', 'color_chart': 'D38CFF', 'color_network': 'C0FFC0'}
     assert saved['theme'] == 'custom'
+    assert int(saved['chart_intensity']) == chosen_intensity
     for key, value in expected.items(): assert int(saved[key]) & 0xFFFFFF == int(value, 16)
     ui.open_app()
     for size, label in [('compact', 'Compact · price & score'), ('expanded', 'Expanded · all readings')]:
         top(); ui.select_preview(size, label); ui.show_whole_preview(size)
         ui.capture('custom-' + size)
     assert preferences() == saved
-    passed('Native color editor saves exact RGB colors and retains them after process restart')
+    passed('All seven native color controls and chart intensity persist after restart')
+    appearance(2, 'X-ray'); ui.tap('apply_settings')
+    assert preferences()['theme'] == 'xray'
+    ui.tap('load_preset'); ui.tap('Night', text=True)
+    assert preferences()['theme'] == 'xray', 'Loading a look must not apply it'
+    top(); ui.tap('apply_settings')
+    assert preferences()['theme'] == 'custom'
+    for key, value in expected.items(): assert int(preferences()[key]) & 0xFFFFFF == int(value, 16)
+    assert int(preferences()['chart_intensity']) == chosen_intensity
+    passed('Saved look restores a draft and applies exact colors without changing currency')
     assert 'FATAL EXCEPTION' not in ui.adb('logcat', '-d', '-s', 'AndroidRuntime:E')
     passed('No fatal AndroidRuntime exception during theme editing')
 finally:

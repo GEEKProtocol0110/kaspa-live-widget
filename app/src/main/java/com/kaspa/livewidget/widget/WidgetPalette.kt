@@ -10,7 +10,8 @@ import com.kaspa.livewidget.utils.WidgetPreferences
 
 /** One palette shared by both launcher sizes and the unsaved setup preview. */
 internal data class WidgetPalette(val background: Int, val text: Int, val accent: Int,
-    val secondary: Int, val personalized: Boolean) {
+    val secondary: Int, val personalized: Boolean,
+    val clock: Int = accent, val price: Int = accent, val chart: Int = accent, val network: Int = text) {
     fun logo(context: Context): Bitmap {
         val image = Bitmap.createBitmap(64, 64, Bitmap.Config.ARGB_8888)
         context.getDrawable(R.drawable.kaspa_mark)!!.apply {
@@ -41,7 +42,8 @@ internal data class WidgetPalette(val background: Int, val text: Int, val accent
             "xray" -> WidgetPalette(Color.BLACK, Color.WHITE, Color.WHITE, 0xFFD0D0D0.toInt(), true)
             "custom" -> prefs.customColors.normalized().let {
                 WidgetPalette(it.background, it.text, it.accent,
-                    ColorUtils.blendARGB(it.background, it.text, .85f), true)
+                    ColorUtils.blendARGB(it.background, it.text, .85f), true,
+                    it.clock ?: it.accent, it.price ?: it.accent, it.chart ?: it.accent, it.network ?: it.text)
             }
             else -> WidgetPalette(0xFF050C18.toInt(), Color.rgb(222,255,249), Color.rgb(120,255,224), Color.rgb(181,218,219), false)
         }

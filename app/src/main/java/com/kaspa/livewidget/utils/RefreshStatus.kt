@@ -16,6 +16,7 @@ data class RefreshStatus(
             return "Tap to load " + selectedCurrency
         if (phase in listOf("queued", "running") && !inProgress(now)) return "Tap to retry"
         return when (phase) {
+            "offline" -> "Offline · saved readings kept · tap to retry"
             "queued" -> "Update queued"
             "running" -> "Refreshing…"
             "complete" -> "Readings updated"

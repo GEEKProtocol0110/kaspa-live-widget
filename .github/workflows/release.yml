@@ -8,7 +8,7 @@ on:
       release_tag:
         description: 'Version tag matching the current main app version'
         required: true
-        default: 'v1.4.2'
+        default: 'v1.5.0'
         type: string
 
 env:
