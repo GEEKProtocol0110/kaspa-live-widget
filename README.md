@@ -19,6 +19,8 @@ Native iPhone support is being developed in [`ios/`](ios/README.md): a SwiftUI a
 
 ## Features
 
+**iPhone users:** a separate [Scriptable version](scriptable/README.md) is available as a single copy/paste script, with small, medium, and large Home Screen layouts. It needs the free Scriptable app and no TestFlight membership. Automated checks cover the script; physical iPhone validation is pending.
+
 - 📱 **Two Widget Sizes**: 2x2 (quick glance) and 4x4 (expanded view)
 - 🎨 **Unified Design**: Kaspa media-kit mark at the top, neon recorded-price line and frosted-glass readings on both sizes
 - 💰 **Live KAS Price**: USD, EUR or GBP with real 24-hour change; CoinGecko plus a USD-only exchange fallback

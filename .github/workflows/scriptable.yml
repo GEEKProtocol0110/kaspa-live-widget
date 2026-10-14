@@ -1,0 +1,30 @@
+name: Scriptable widget
+
+on:
+  pull_request:
+    paths: ['scriptable/**', '.github/workflows/scriptable.yml']
+  push:
+    branches: [main]
+    paths: ['scriptable/**', '.github/workflows/scriptable.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test scriptable/widget.test.cjs
+      - name: Record public feed compatibility
+        run: node scriptable/check-live-feeds.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: scriptable-live-feeds
+          path: scriptable-evidence/live-feeds.json
+          retention-days: 14
