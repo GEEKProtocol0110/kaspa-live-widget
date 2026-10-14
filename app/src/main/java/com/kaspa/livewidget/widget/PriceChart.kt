@@ -17,7 +17,7 @@ internal object PriceChart {
     }
 
     /** Full-widget, bounded-size surface: grid and bloom under the translucent panels. */
-    fun glass(points: List<PricePoint>, light: Boolean, width: Int, height: Int, palette: WidgetPalette? = null): Bitmap {
+    fun glass(points: List<PricePoint>, light: Boolean, width: Int, height: Int, palette: WidgetPalette? = null, intensity: Int = 50): Bitmap {
         require(width in 120..700 && height in 120..900)
         val image = Bitmap.createBitmap(width,height,Bitmap.Config.ARGB_8888)
         val canvas = Canvas(image)
@@ -44,7 +44,7 @@ internal object PriceChart {
         paint.color = if(palette != null) ColorUtils.setAlphaComponent(palette.text, 8) else if(light) 0x08607685 else 0x08C2F6FF.toInt()
         y=0f
         while(y<h) { canvas.drawLine(0f,y,w,y,paint); y+=5f }
-        drawLine(canvas,observations(points), palette?.accent ?: if(light) 0xFF087F8B.toInt() else 0xFF64FFE2.toInt(),w,h*.18f,h*.88f,true)
+        drawLine(canvas,observations(points), palette?.chart ?: if(light) 0xFF087F8B.toInt() else 0xFF64FFE2.toInt(),w,h*.18f,h*.88f,true,intensity.coerceIn(0,100) / 100f)
         canvas.restore()
         paint.shader = LinearGradient(0f,0f,w,h,
             if(palette != null) intArrayOf(ColorUtils.setAlphaComponent(palette.accent, 210), ColorUtils.setAlphaComponent(palette.accent, 65), ColorUtils.setAlphaComponent(palette.accent, 170))
@@ -56,7 +56,8 @@ internal object PriceChart {
     }
 
     private fun drawLine(canvas: Canvas, points: List<PricePoint>, color: Int,
-                         width: Float, top: Float, bottom: Float, neon: Boolean) {
+                         width: Float, top: Float, bottom: Float, neon: Boolean, intensity: Float = 1f) {
+        if (neon && intensity <= 0f) return
         if(points.size<2 || points.last().timestamp<=points.first().timestamp) return
         val low=points.minOf { it.price }; val high=points.maxOf { it.price }
         val path=Path()
@@ -70,19 +71,19 @@ internal object PriceChart {
         }
         val paint=Paint(Paint.ANTI_ALIAS_FLAG).apply { style=Paint.Style.STROKE; strokeJoin=Paint.Join.ROUND; strokeCap=Paint.Cap.ROUND }
         if(neon) {
-            paint.color=color;paint.alpha=65;paint.strokeWidth=16f;paint.maskFilter=BlurMaskFilter(10f,BlurMaskFilter.Blur.NORMAL)
+            paint.color=color;paint.alpha=(65 * intensity).toInt();paint.strokeWidth=16f;paint.maskFilter=BlurMaskFilter(10f,BlurMaskFilter.Blur.NORMAL)
             canvas.drawPath(path,paint)
-            paint.alpha=140;paint.strokeWidth=7f;paint.maskFilter=BlurMaskFilter(4f,BlurMaskFilter.Blur.NORMAL)
+            paint.alpha=(140 * intensity).toInt();paint.strokeWidth=7f;paint.maskFilter=BlurMaskFilter(4f,BlurMaskFilter.Blur.NORMAL)
             canvas.drawPath(path,paint)
         }
-        paint.maskFilter=null;paint.color=color;paint.strokeWidth=if(neon) 2.5f else 3f
+        paint.maskFilter=null;paint.color=color;paint.alpha=if(neon) (255 * intensity).toInt() else 255;paint.strokeWidth=if(neon) 2.5f else 3f
         canvas.drawPath(path,paint)
         if(neon) {
-            paint.color=Color.WHITE;paint.alpha=170;paint.strokeWidth=.8f
+            paint.color=Color.WHITE;paint.alpha=(170 * intensity).toInt();paint.strokeWidth=.8f
             canvas.drawPath(path,paint)
-            paint.style=Paint.Style.FILL;paint.color=color;paint.alpha=90;paint.maskFilter=BlurMaskFilter(5f,BlurMaskFilter.Blur.NORMAL)
+            paint.style=Paint.Style.FILL;paint.color=color;paint.alpha=(90 * intensity).toInt();paint.maskFilter=BlurMaskFilter(5f,BlurMaskFilter.Blur.NORMAL)
             canvas.drawCircle(lastX,lastY,7f,paint)
-            paint.maskFilter=null;paint.alpha=255;canvas.drawCircle(lastX,lastY,3f,paint)
+            paint.maskFilter=null;paint.alpha=(255 * intensity).toInt();canvas.drawCircle(lastX,lastY,3f,paint)
         }
     }
 }

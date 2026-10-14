@@ -182,3 +182,9 @@ Version 1.4.2 targets Android 16/API 36 and includes a signed Android App Bundle
 ### X-ray and custom colors
 
 In setup, choose **X-ray · black & white** for monochrome glass, or **Custom colors** to edit the background, text and accent using RGB sliders or `#RRGGBB`. The accent controls the chart, price, clock and Kaspa mark. Preview changes first, then tap **Apply settings** (or Save & add) to update both widget sizes. Custom colors stay saved when you switch presets. **Reset custom colors** restores the default palette; low contrast shows a readability hint.
+
+### Personal looks (v1.5.0)
+
+Use **Chart intensity** for a subtle line or brighter glow; 0% hides the line without inventing data. **Custom colors** includes separate clock, price, chart and network colors. **Use accent/text for all readings** links them back to the original palette. Save up to 20 named looks on your device, then load one as a draft and tap **Apply settings**. Looks leave your currency and refresh interval unchanged. Refresh feedback distinguishes queued/running work, offline or unavailable feeds, and stale saved readings.
+
+For installation and download troubleshooting, use the [HQ widget guide](https://www.geekprotocol.xyz/tools/kaspa-widget/).

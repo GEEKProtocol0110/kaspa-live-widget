@@ -22,6 +22,11 @@ class WidgetUpdateWorker(context: Context, params: WorkerParameters) : Coroutine
         val context = applicationContext
         val settings = WidgetSettings(context).get()
         val status = RefreshStatusCache(context)
+        if (ConnectionState.offline(context)) {
+            status.set("offline", settings.currency)
+            WidgetRenderer.updateAll(context)
+            return@withLock Result.success()
+        }
         status.set("running", settings.currency)
         WidgetRenderer.updateAll(context)
         try {

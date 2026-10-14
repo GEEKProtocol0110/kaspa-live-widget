@@ -190,8 +190,8 @@ class WidgetLayoutTest {
                 assertNotNull(widget.findViewById<android.widget.ImageView>(R.id.widget_logo).drawable)
                 assertNotNull(widget.findViewById<android.widget.ImageView>(R.id.widget_chart).drawable)
                 val status = widget.findViewById<TextView>(R.id.widget_status)
-                assertEquals("Some feeds delayed", status.text.toString())
-                assertEquals("Some feeds delayed · cached readings kept", status.contentDescription)
+                assertEquals("Offline · retry", status.text.toString())
+                assertTrue(status.contentDescription.toString().contains("Some feeds delayed · cached readings kept"))
                 assertEquals(if(enabled) View.VISIBLE else View.GONE,widget.findViewById<View>(R.id.widget_chart_group).visibility)
                 if(enabled) assertEquals("24h chart unavailable",widget.findViewById<TextView>(R.id.widget_chart_label).text.toString())
             }

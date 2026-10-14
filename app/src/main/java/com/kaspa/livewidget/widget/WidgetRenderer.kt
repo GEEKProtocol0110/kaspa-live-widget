@@ -34,14 +34,9 @@ object WidgetRenderer {
         views.setOnClickPendingIntent(R.id.widget_settings, PendingIntent.getActivity(context, 0,
             Intent(context, SettingsActivity::class.java), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
         val fullStatus = status.label(prefs.currency)
-        val statusCaption = when (fullStatus) {
-            "Some feeds delayed · cached readings kept" -> "Some feeds delayed"
-            "Update unavailable · cached readings kept" -> "Update unavailable"
-            "Update interrupted · tap to retry" -> "Tap to retry"
-            else -> fullStatus
-        }
+        val statusCaption = RefreshFeedback.caption(status, market, data, ConnectionState.offline(context))
         views.setTextViewText(R.id.widget_status, statusCaption)
-        views.setContentDescription(R.id.widget_status, fullStatus)
+        views.setContentDescription(R.id.widget_status, "$statusCaption · $fullStatus. ${RefreshFeedback.ages(market, data)}")
         views.setViewVisibility(R.id.widget_progress, if (status.inProgress()) View.VISIBLE else View.GONE)
         views.setTextViewText(R.id.widget_price, MarketDisplay.price(market))
         views.setTextViewText(R.id.widget_change, MarketDisplay.change(market))
@@ -58,8 +53,8 @@ object WidgetRenderer {
         val width = ((minWidth.takeIf { it > 0 } ?: if (large) 250 else 140) * 2).coerceIn(280,700)
         val height = ((minHeight.takeIf { it > 0 } ?: if (large) 300 else 180) * 2).coerceIn(360,900)
         views.setImageViewBitmap(R.id.widget_chart, PriceChart.glass(if (prefs.showChart) market.history else emptyList(),light,width,height,
-            palette.takeIf { it.personalized }))
-        views.setViewVisibility(R.id.widget_chart_group, if (prefs.showChart) View.VISIBLE else View.GONE)
+            palette.takeIf { it.personalized }, prefs.chartIntensity))
+        views.setViewVisibility(R.id.widget_chart_group, if (prefs.showChart && prefs.chartIntensity > 0) View.VISIBLE else View.GONE)
         views.setTextViewText(R.id.widget_chart_label, MarketDisplay.chartCaption(market))
         views.setContentDescription(R.id.widget_chart_label, MarketDisplay.historyLabel(market))
         if (palette.personalized) {
@@ -68,9 +63,10 @@ object WidgetRenderer {
         } else views.setInt(R.id.widget_root, "setBackgroundResource", if (light) R.drawable.widget_background_light else R.drawable.widget_background)
         for (id in listOf(R.id.widget_time, R.id.widget_price, R.id.widget_change, R.id.widget_block_height,
             R.id.widget_updated, R.id.widget_status, R.id.widget_settings, R.id.widget_brand, R.id.widget_chart_label)) views.setTextColor(id, textColor)
-        views.setTextColor(R.id.widget_price, accent)
-        views.setTextColor(R.id.widget_time, accent)
+        views.setTextColor(R.id.widget_price, palette.price)
+        views.setTextColor(R.id.widget_time, palette.clock)
         views.setTextColor(R.id.widget_brand, accent)
+        views.setTextColor(R.id.widget_block_height, palette.network)
         val change = market.change24h?.takeIf { it.isFinite() && it >= -100 && market.changeTimestamp > 0 }
         views.setTextColor(R.id.widget_change, when {
             change == null || change == 0.0 -> secondary
@@ -87,7 +83,7 @@ object WidgetRenderer {
             views.setTextViewText(R.id.widget_bps, if (data.bps > 0) String.format(Locale.getDefault(), "%.1f", data.bps) else "--")
             views.setTextViewText(R.id.widget_hashrate, data.hashrate)
             views.setTextViewText(R.id.widget_hashrate_updated, WidgetFreshness.hashrateLabel(data))
-            for (id in listOf(R.id.widget_bps, R.id.widget_hashrate)) views.setTextColor(id, textColor)
+            for (id in listOf(R.id.widget_bps, R.id.widget_hashrate)) views.setTextColor(id, palette.network)
             views.setTextColor(R.id.widget_hashrate_updated, secondary)
 
         }
