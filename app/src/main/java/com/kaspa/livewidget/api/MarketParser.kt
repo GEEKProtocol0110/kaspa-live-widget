@@ -3,6 +3,7 @@ package com.kaspa.livewidget.api
 import com.google.gson.JsonParser
 import com.kaspa.livewidget.data.MarketQuote
 import com.kaspa.livewidget.data.PricePoint
+import com.kaspa.livewidget.data.ChartRange
 import java.util.Locale
 
 internal object MarketParser {
@@ -17,7 +18,7 @@ internal object MarketParser {
         else MarketQuote(currency, price, change, time, "CoinGecko")
     } catch (_: Exception) { null }
 
-    fun history(json: String, now: Long): List<PricePoint>? = try {
+    fun history(json: String, now: Long, range: ChartRange = ChartRange.DAY): List<PricePoint>? = try {
         val rows = JsonParser.parseString(json).asJsonObject.getAsJsonArray("prices")
         if (rows.size() !in 2..1000) null else {
             val points = rows.map { row ->
@@ -25,13 +26,15 @@ internal object MarketParser {
                 require(pair.size() == 2)
                 val time = pair[0].asLong
                 val price = pair[1].asDouble
-                require(time in (now - 26 * 3600_000L)..(now + 300_000L))
+                val sourceWindow = if (range == ChartRange.HOUR) ChartRange.DAY else range
+                require(time in (now - sourceWindow.durationMillis - 2 * 3600_000L)..(now + 300_000L))
                 require(price.isFinite() && price > 0)
                 PricePoint(time, price)
-            }.sortedBy { it.timestamp }.distinctBy { it.timestamp }
-            // Require a real day of observations; two nearby points are not a 24h chart.
+            }.filter { range != ChartRange.HOUR || it.timestamp >= now - range.durationMillis }
+                .sortedBy { it.timestamp }.distinctBy { it.timestamp }
+            // A short or truncated response must never masquerade as a longer chart.
             if (points.size < 2 || points.last().timestamp < now - 3600_000L ||
-                points.last().timestamp - points.first().timestamp < 22 * 3600_000L) null
+                points.last().timestamp - points.first().timestamp < range.minimumSpanMillis) null
             else points
         }
     } catch (_: Exception) { null }

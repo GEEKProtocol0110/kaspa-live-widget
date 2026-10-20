@@ -54,4 +54,49 @@ class WidgetSettingsTest {
             assertNotNull(activity.findViewById<Button>(R.id.add_expanded))
         }
     }
+    @Test fun rangeCachesShareQuotesWithoutRelabelingHistory() {
+        val cache = MarketCache(context)
+        val daily = MarketData(price = .03, timestamp = 1000,
+            history = listOf(PricePoint(1, .01), PricePoint(1000, .03)), historyTimestamp = 1000)
+        cache.save(daily)
+        assertTrue(cache.get("USD", ChartRange.WEEK).history.isEmpty())
+        val weekly = daily.copy(price = .04, timestamp = 2000,
+            history = listOf(PricePoint(2, .02), PricePoint(2000, .04)), historyTimestamp = 2000)
+        cache.save(weekly, ChartRange.WEEK)
+        assertEquals(daily.history, cache.get("USD").history)
+        assertEquals(weekly.history, cache.get("USD", ChartRange.WEEK).history)
+        assertEquals(.04, cache.get("USD").price, 0.0)
+        assertTrue(cache.get("USD", ChartRange.MONTH).history.isEmpty())
+        assertTrue(cache.get("EUR", ChartRange.WEEK).history.isEmpty())
+        val failed = MarketDataMerger.merge(cache.get("USD", ChartRange.WEEK), "USD", null, null, 3000)
+        cache.save(failed, ChartRange.WEEK)
+        assertEquals(2000L, cache.get("USD", ChartRange.WEEK).historyTimestamp)
+        cache.save(daily.copy(price = .05, timestamp = 4000))
+        assertEquals(.05, cache.get("USD", ChartRange.WEEK).price, 0.0)
+        assertEquals(weekly.history, cache.get("USD", ChartRange.WEEK).history)
+        WidgetSettings(context).save(WidgetPreferences(chartRange = "7d"))
+        assertEquals("7d", WidgetSettings(context).get().chartRange)
+        WidgetSettings(context).save(WidgetPreferences(chartRange = "invalid"))
+        assertEquals("24h", WidgetSettings(context).get().chartRange)
+    }
+
+    @Test fun bothWidgetsLabelTheSelectedRangeAndKeepDailyChangeExplicit() {
+        val now = System.currentTimeMillis()
+        val cache = MarketCache(context)
+        for (range in ChartRange.values()) {
+            val data = MarketData(price = .03, change24h = 2.0, timestamp = now, changeTimestamp = now,
+                history = listOf(PricePoint(now - range.durationMillis, .02), PricePoint(now, .03)), historyTimestamp = now)
+            cache.save(data, range)
+            for (large in listOf(false, true)) {
+                val root = WidgetRenderer.views(context, large,
+                    previewPreferences = WidgetPreferences(chartRange = range.key)).apply(context, FrameLayout(context))
+                assertEquals("${range.key} USD chart", root.findViewById<TextView>(R.id.widget_chart_label).text.toString())
+                assertEquals("24h +2.00%", root.findViewById<TextView>(R.id.widget_change).text.toString())
+            }
+        }
+        assertEquals("7d chart unavailable", MarketDisplay.chartCaption(MarketData(), range = ChartRange.WEEK))
+        val stale = cache.get("USD", ChartRange.WEEK)
+        assertTrue(MarketDisplay.chartCaption(stale, now + 3_600_001L, ChartRange.WEEK).contains("stale"))
+    }
+
 }

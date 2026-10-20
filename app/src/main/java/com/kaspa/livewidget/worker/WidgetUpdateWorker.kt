@@ -6,6 +6,7 @@ import androidx.work.WorkerParameters
 import com.kaspa.livewidget.api.KaspaApiService
 import com.kaspa.livewidget.api.MarketDataSource
 import com.kaspa.livewidget.data.MarketDataMerger
+import com.kaspa.livewidget.data.ChartRange
 import com.kaspa.livewidget.data.NetworkDataMerger
 import com.kaspa.livewidget.utils.*
 import com.kaspa.livewidget.widget.WidgetRenderer
@@ -34,19 +35,20 @@ class WidgetUpdateWorker(context: Context, params: WorkerParameters) : Coroutine
                 val now = System.currentTimeMillis()
                 val marketCache = MarketCache(context)
                 val networkCache = DataCache(context)
-                val oldMarket = marketCache.get(settings.currency)
+                val range = ChartRange.fromKey(settings.chartRange)
+                val oldMarket = marketCache.get(settings.currency, range)
                 val source = MarketDataSource()
                 val quote = async { source.quote(settings.currency, now) }
                 val history = async {
                     if (settings.showChart && (oldMarket.history.isEmpty() || now - oldMarket.historyTimestamp >= 3_600_000L))
-                        source.history(settings.currency, now) else null
+                        source.history(settings.currency, now, range) else null
                 }
                 val feeds = async { KaspaApiService().fetchFeeds() }
                 val newQuote = quote.await()
                 val newHistory = history.await()
                 val network = feeds.await()
                 val market = MarketDataMerger.merge(oldMarket, settings.currency, newQuote, newHistory, now)
-                marketCache.save(market)
+                marketCache.save(market, range)
                 val merged = NetworkDataMerger.merge(networkCache.getCachedData(),
                     if (settings.currency == "USD") newQuote?.price else null,
                     network.network, network.hashrate, System.currentTimeMillis(),

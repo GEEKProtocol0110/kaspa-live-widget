@@ -4,4 +4,5 @@
     <item name="reset_colors" type="id"/><item name="color_hex" type="id"/>
     <item name="color_red" type="id"/><item name="color_green" type="id"/><item name="color_blue" type="id"/>
 <item name="color_clock" type="id"/><item name="color_price" type="id"/><item name="color_chart" type="id"/><item name="color_network" type="id"/><item name="link_colors" type="id"/><item name="chart_intensity" type="id"/><item name="intensity_label" type="id"/><item name="preset_note" type="id"/><item name="preset_name" type="id"/><item name="save_preset" type="id"/><item name="load_preset" type="id"/><item name="delete_preset" type="id"/>
+<item name="chart_range_choice" type="id"/>
 </resources>

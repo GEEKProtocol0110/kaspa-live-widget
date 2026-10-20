@@ -84,4 +84,32 @@ class MarketDataSourceTest {
             assertNull(quote.change24h)
         }
     }
+    @Test fun rangesRejectTruncatedHistoryAndHourClipsDailyObservations() {
+        fun json(hours: Int) = "{\"prices\":[" + (0..hours * 12).joinToString(",") {
+            "[${now - hours * 3_600_000L + it * 300_000L},0.03]"
+        } + "]}"
+        val hour = MarketParser.history(json(24), now, ChartRange.HOUR)!!
+        assertEquals(now - 3_600_000L, hour.first().timestamp)
+        assertEquals(13, hour.size)
+        assertNull(MarketParser.history(json(24), now, ChartRange.WEEK))
+        for (range in listOf(ChartRange.WEEK, ChartRange.MONTH)) {
+            val body = "{\"prices\":[[${now - range.durationMillis},0.02],[$now,0.03]]}"
+            assertNotNull(MarketParser.history(body, now, range))
+            assertNull(MarketParser.history(body.replace("0.03", "-1"), now, range))
+        }
+    }
+
+    @Test fun rangeRequestsUseSelectedCurrencyAndProviderWindow() = runBlocking {
+        MockWebServer().use { server ->
+            server.start()
+            val source = MarketDataSource(coinGeckoBase = server.url("/").toString().removeSuffix("/"))
+            for (range in ChartRange.values()) {
+                val body = "{\"prices\":[[${now - range.durationMillis},0.02],[$now,0.03]]}"
+                server.enqueue(MockResponse().setBody(body))
+                assertNotNull(source.history("EUR", now, range))
+                assertEquals("/coins/kaspa/market_chart?vs_currency=eur&days=${range.days}", server.takeRequest().path)
+            }
+        }
+    }
+
 }

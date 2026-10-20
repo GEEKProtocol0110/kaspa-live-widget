@@ -32,11 +32,11 @@ Your unsaved choices survive rotation. **Install help & data sources** explains 
 
 ## Settings, refresh and chart
 
-Open the app or tap **Setup** on a widget. Choose currency, refresh interval, dark/light appearance and optional 24-hour chart, then tap **Apply settings**. Use **Save & add compact** or **Save & add expanded** to save choices and request a widget, or use your launcher’s Widgets menu. Choices apply to all your Kaspa widgets.
+Open the app or tap **Setup** on a widget. Choose currency, refresh interval, dark/light appearance and an optional chart. **Chart time range** offers **1H, 24H, 7D and 30D**, then tap **Apply settings**. Use **Save & add compact** or **Save & add expanded** to save choices and request a widget, or use your launcher’s Widgets menu. Choices apply to all your Kaspa widgets.
 
 Tap the widget or **Refresh now** to see queued/running/completed status. Partial and failed updates keep cached readings with their original times. Switching currency shows that currency’s own cache or a placeholder while loading; it never relabels a dollar price as euros.
 
-The chart uses actual CoinGecko observations. Its neon line appears behind the frosted-glass panels on both widget sizes, with a separate preview in the app. Unavailable series show a message. Cached charts older than an hour show stale. Price/network readings older than 30 minutes show stale even when you select a 60-minute refresh interval.
+The chart uses actual CoinGecko observations for the selected range. The 1H range selects the past hour from the daily feed; 7D and 30D load their own series. Chart range and the 15/30/60-minute background refresh are independent. The percentage beside the price always shows the 24-hour change. Switching ranges keeps a separate saved history for each currency and range; a range you have not loaded yet shows unavailable until a successful refresh. Its neon line appears behind the frosted-glass panels on both widget sizes, with a separate preview in the app. Unavailable series show a message. Cached charts older than an hour show stale. Price/network readings older than 30 minutes show stale even when you select a 60-minute refresh interval.
 
 Use **Downloads and release notes** to open GitHub Releases. Public signed releases require the owner’s one-time setup in [SIGNED_RELEASES.md](SIGNED_RELEASES.md). After the first signed release, newer release APKs update the existing app and preserve settings. Debug CI builds are a separate test app.
 

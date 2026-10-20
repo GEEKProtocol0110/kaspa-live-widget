@@ -33,7 +33,7 @@ Get your Kaspa Live Widget up and running in minutes!
 
 ### Customize
 
-Open the app icon or tap **Setup** on a widget. Choose currency, refresh interval, appearance and chart; tap **Apply settings**. The app also has Add widget buttons and a chart preview. Both widget sizes show the enabled neon chart behind their glass readings.
+Open the app icon or tap **Setup** on a widget. Choose currency, refresh interval, appearance and chart range (1H, 24H, 7D or 30D); tap **Apply settings**. The app also has Add widget buttons and a chart preview. Both widget sizes show the enabled neon chart behind their glass readings.
 
 ### What You'll See
 
