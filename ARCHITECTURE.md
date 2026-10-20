@@ -7,7 +7,7 @@ Android 8+ native home-screen widgets, Kotlin, RemoteViews and WorkManager. Both
 | Component | Responsibility |
 | --- | --- |
 | `SettingsActivity` | Widget pin requests, manual installation help, shared preferences, current reading/chart preview and release page |
-| `WidgetSettings` | Validated USD/EUR/GBP, 15/30/60-minute interval, dark/light theme and chart preference |
+| `WidgetSettings` | Validated USD/EUR/GBP, 15/30/60-minute interval, dark/light theme and chart visibility/range (1H, 24H, 7D, 30D) |
 | `WorkScheduler` | Unique periodic work with UPDATE policy; manual KEEP work; settings changes append a refresh so an unfinished old-currency request cannot suppress the new choice |
 | `WidgetUpdateWorker` | Mutex around cache read/fetch/merge/save, parallel market/network calls, progress/result status and widget rendering |
 | `KaspaApiService` | Public REST network and hashrate calls |
@@ -24,11 +24,11 @@ Manual taps share unfinished work. Settings changes append work rather than canc
 
 Prices, network counts and hashrate have separate last-good timestamps. Market quotes keep the provider’s `last_updated_at`; KuCoin 24-hour statistics keep the provider timestamp; Gate and the price-only USD fallback use their fetch time. A currency switch uses only that currency’s cache. Exchange fallback never populates EUR/GBP. A price-only quote clears a previous change percentage. Network source/node changes reset observed BPS so counts from different nodes are not subtracted. RPC block counts are node-local and may fall during pruning; a decreasing count produces no BPS reading.
 
-Price/network freshness is 30 minutes. A chart is stale when its last point is older than an hour. Successful history fetches are reused for one hour; missing history can be retried during later refreshes. Chart parsing requires positive finite prices, ordered/deduplicated timestamps, a recent final point and at least 22 hours of coverage. It never synthesizes a missing price series. Both sizes fuse the enabled chart into their glass background; the app also offers a chart preview.
+Price/network freshness is 30 minutes. A chart is stale when its last point is older than an hour. Successful history fetches are reused for one hour; missing history can be retried during later refreshes. Chart parsing requires positive finite prices, ordered/deduplicated timestamps, a recent final point and range-appropriate coverage (50 minutes for 1H, 22 hours for 24H, and the selected duration minus two hours for 7D/30D). It never synthesizes a missing price series. Both sizes fuse the enabled chart into their glass background; the app also offers a chart preview.
 
 ## Public data sources
 
-CoinGecko `/api/v3/simple/price` requests the selected currency, `include_24hr_change=true` and `include_last_updated_at=true`. `/coins/kaspa/market_chart?vs_currency=...&days=1` supplies historical `[Unix milliseconds, price]` pairs. USD-only fallbacks are public KuCoin and Gate KAS/USDT tickers; the UI identifies these as an approximation. All calls have timeouts and failures preserve the last good data.
+CoinGecko `/api/v3/simple/price` requests the selected currency, `include_24hr_change=true` and `include_last_updated_at=true`. `/coins/kaspa/market_chart?vs_currency=...&days=1|7|30` supplies historical `[Unix milliseconds, price]` pairs. 1H clips the daily response to the past hour. `MarketCache` preserves the existing daily cache and keeps separate series for each additional currency/range, sharing the latest quote across ranges. USD-only fallbacks are public KuCoin and Gate KAS/USDT tickers; the UI identifies these as an approximation. All calls have timeouts and failures preserve the last good data.
 
 Primary network endpoints are `https://api.kaspa.org/info/blockdag` and `/info/hashrate` (TH/s). Missing feeds are filled without replacing a healthy primary reading. The fallback uses official public resolver groups (`kaspa.stream`, `kaspa.red`, `kaspa.blue`) and requires an allowlisted WSS host and exact mainnet proxy path. Resolver records currently expose Borsh paths; the documented proxy layout also exposes the corresponding `/wrpc/json` path. That convention is not a protocol guarantee: unavailable JSON endpoints fail safely and another resolver can be tried.
 
