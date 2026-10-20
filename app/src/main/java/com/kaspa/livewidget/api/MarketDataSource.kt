@@ -2,6 +2,7 @@ package com.kaspa.livewidget.api
 
 import com.kaspa.livewidget.data.MarketQuote
 import com.kaspa.livewidget.data.PricePoint
+import com.kaspa.livewidget.data.ChartRange
 import com.kaspa.livewidget.utils.WidgetPreferences
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -49,13 +50,13 @@ class MarketDataSource(
         null
     }
 
-    suspend fun history(currency: String, now: Long): List<PricePoint>? =
+    suspend fun history(currency: String, now: Long, range: ChartRange = ChartRange.DAY): List<PricePoint>? =
         withContext(Dispatchers.IO) {
             require(currency in WidgetPreferences.CURRENCIES)
             try {
                 get(coinGeckoBase + "/coins/kaspa/market_chart?vs_currency=" +
-                    currency.lowercase(Locale.US) + "&days=1")
-                    ?.let { MarketParser.history(it, now) }
+                    currency.lowercase(Locale.US) + "&days=${range.days}")
+                    ?.let { MarketParser.history(it, now, range) }
             } catch (e: CancellationException) { throw e } catch (_: Exception) { null }
         }
 }

@@ -102,6 +102,7 @@ class SettingsPreviewTest {
             app.findViewById<Spinner>(R.id.currency_choice).setSelection(1)
             app.findViewById<Spinner>(R.id.appearance_choice).setSelection(1)
             app.findViewById<Spinner>(R.id.interval_choice).setSelection(2)
+            app.findViewById<Spinner>(R.id.chart_range_choice).setSelection(2)
             app.findViewById<Spinner>(R.id.preview_choice).setSelection(1)
             app.findViewById<Switch>(R.id.chart_choice).isChecked = false
             idle()
@@ -120,11 +121,13 @@ class SettingsPreviewTest {
             assertEquals("EUR", app.findViewById<Spinner>(R.id.currency_choice).selectedItem)
             assertEquals("Frosted light", app.findViewById<Spinner>(R.id.appearance_choice).selectedItem)
             assertEquals("60 minutes", app.findViewById<Spinner>(R.id.interval_choice).selectedItem)
+            assertEquals("7D · Past week", app.findViewById<Spinner>(R.id.chart_range_choice).selectedItem)
+            assertFalse(app.findViewById<Spinner>(R.id.chart_range_choice).isEnabled)
             assertEquals(1, app.findViewById<Spinner>(R.id.preview_choice).selectedItemPosition)
             assertFalse(app.findViewById<Switch>(R.id.chart_choice).isChecked)
             assertEquals(saved, WidgetSettings(context).get())
             app.findViewById<Button>(R.id.apply_settings).performClick()
-            assertEquals(WidgetPreferences("EUR", 60, "light", false), WidgetSettings(context).get())
+            assertEquals(WidgetPreferences("EUR", 60, "light", false, chartRange = "7d"), WidgetSettings(context).get())
             assertFalse(app.findViewById<Button>(R.id.apply_settings).isEnabled)
             assertEquals("EUR", RefreshStatusCache(context).get().currency)
         }

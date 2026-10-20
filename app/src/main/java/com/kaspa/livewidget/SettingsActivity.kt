@@ -24,6 +24,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.graphics.ColorUtils
 import com.kaspa.livewidget.data.KaspaNetworkData
+import com.kaspa.livewidget.data.ChartRange
 import com.kaspa.livewidget.utils.*
 import com.kaspa.livewidget.widget.*
 
@@ -33,6 +34,7 @@ class SettingsActivity : Activity() {
     private lateinit var scroll: ScrollView
     private lateinit var currency: Spinner
     private lateinit var interval: Spinner
+    private lateinit var chartRange: Spinner
     private lateinit var appearance: Spinner
     private lateinit var previewChoice: Spinner
     private lateinit var chart: Switch
@@ -78,7 +80,8 @@ class SettingsActivity : Activity() {
                 state?.getInt("draft_accent", saved.customColors.accent) ?: saved.customColors.accent,
                 draftColor(state, "clock", saved.customColors.clock), draftColor(state, "price", saved.customColors.price),
                 draftColor(state, "chart_color", saved.customColors.chart), draftColor(state, "network", saved.customColors.network)),
-            state?.getInt("draft_intensity", saved.chartIntensity) ?: saved.chartIntensity).normalized()
+            state?.getInt("draft_intensity", saved.chartIntensity) ?: saved.chartIntensity,
+            state?.getString("draft_chart_range") ?: saved.chartRange).normalized()
         draftColors = draft.customColors
         activeTheme = draft.theme
         body = LinearLayout(this).apply {
@@ -160,9 +163,12 @@ class SettingsActivity : Activity() {
         currency = select("Price currency", WidgetPreferences.CURRENCIES, R.id.currency_choice, preferences)
         interval = select("Background refresh", WidgetPreferences.INTERVALS.map { "$it minutes" }, R.id.interval_choice, preferences)
         chart = Switch(this).apply {
-            id = R.id.chart_choice; text = "24-hour chart"; minHeight = dp(48); tag = "control"
+            id = R.id.chart_choice; text = "Show price chart"; minHeight = dp(48); tag = "control"
             preferences.addView(this)
         }
+        chartRange = select("Chart time range", ChartRange.values().map { it.label }, R.id.chart_range_choice, preferences)
+        text("Chart range changes the price history shown. Background refresh controls how often new readings are requested.", preferences, "secondary")
+        chartRange.setSelection(ChartRange.values().indexOf(ChartRange.fromKey(draft.chartRange)))
         currency.setSelection(WidgetPreferences.CURRENCIES.indexOf(draft.currency))
         interval.setSelection(WidgetPreferences.INTERVALS.indexOf(draft.intervalMinutes))
         appearance.setSelection(WidgetPreferences.THEMES.indexOf(draft.theme))
@@ -202,7 +208,7 @@ class SettingsActivity : Activity() {
             override fun onNothingSelected(parent: AdapterView<*>?) = Unit
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) { if (ready) display() }
         }
-        for (choice in listOf(appearance, currency, interval, previewChoice)) choice.onItemSelectedListener = selection
+        for (choice in listOf(appearance, currency, interval, chartRange, previewChoice)) choice.onItemSelectedListener = selection
         chart.setOnCheckedChangeListener { _, _ -> if (ready) display() }
         paintScreen()
         display()
@@ -216,6 +222,7 @@ class SettingsActivity : Activity() {
         for ((key, color) in listOf("clock" to draftColors.clock, "price" to draftColors.price,
             "chart_color" to draftColors.chart, "network" to draftColors.network)) if (color != null) state.putInt("draft_$key", color)
         state.putInt("draft_intensity", intensity.progress)
+        state.putString("draft_chart_range", draft.chartRange)
         state.putInt("preview_size", previewChoice.selectedItemPosition)
         state.putBoolean("help_open", findViewById<View>(R.id.source_help).visibility == View.VISIBLE)
         super.onSaveInstanceState(state)
@@ -268,7 +275,8 @@ class SettingsActivity : Activity() {
     }
 
     private fun selected() = WidgetPreferences(WidgetPreferences.CURRENCIES[currency.selectedItemPosition],
-        WidgetPreferences.INTERVALS[interval.selectedItemPosition], WidgetPreferences.THEMES[appearance.selectedItemPosition], chart.isChecked, draftColors, intensity.progress)
+        WidgetPreferences.INTERVALS[interval.selectedItemPosition], WidgetPreferences.THEMES[appearance.selectedItemPosition], chart.isChecked, draftColors, intensity.progress,
+        ChartRange.values()[chartRange.selectedItemPosition].key)
 
     private fun save() {
         val selected = selected()
@@ -301,6 +309,7 @@ class SettingsActivity : Activity() {
         for ((key, button) in detailColors) button.text = "${if (key == "network") "Network stats" else key.replaceFirstChar { it.uppercase() }} · ${ColorEditor.hex(detailColor(key))}"
         intensityLabel.text = "Chart intensity · ${intensity.progress}% · ${if (intensity.progress == 0) "hidden" else if (intensity.progress <= 50) "subtle" else "bright"}"
         intensity.contentDescription = "Chart intensity ${intensity.progress} percent"
+        chartRange.isEnabled = chart.isChecked; chartRange.alpha = if (chart.isChecked) 1f else .45f
         intensity.isEnabled = chart.isChecked; intensity.alpha = if (chart.isChecked) 1f else .45f
         presetNote.text = "${WidgetPresets(this).all().size}/20 saved looks · Saving a look does not apply widget settings."
         colorNote.text = if (ColorUtils.calculateContrast(draftColors.text, draftColors.background) < 4.5 ||
@@ -318,17 +327,18 @@ class SettingsActivity : Activity() {
         applyButton.isEnabled = dirty; applyButton.alpha = if (dirty) 1f else .55f
         refreshButton.isEnabled = !status.inProgress(); refreshButton.alpha = if (status.inProgress()) .55f else 1f
         refreshButton.text = if (status.inProgress()) status.label(saved.currency) else "Refresh saved settings"
-        val market = MarketCache(this).get(draft.currency)
+        val range = ChartRange.fromKey(draft.chartRange)
+        val market = MarketCache(this).get(draft.currency, range)
         val data = DataCache(this).getCachedData() ?: KaspaNetworkData()
         previewNote.text = when {
             market.timestamp <= 0 -> "No saved ${draft.currency} quote yet. Apply settings, then refresh."
             !draft.showChart || draft.chartIntensity == 0 -> "Preview uses saved ${draft.currency} readings. Chart is off."
-            else -> "Saved ${draft.currency} readings · ${MarketDisplay.historyLabel(market)}"
+            else -> "Saved ${draft.currency} readings · ${MarketDisplay.historyLabel(market, range = range)}"
         }
         val large = previewChoice.selectedItemPosition == 1
         val key = listOf(draft, large, preview.width, market, data, status.label(draft.currency), status.inProgress(), ConnectionState.offline(this),
             WidgetFreshness.label(data.copy(price = market.price, priceTimestamp = market.timestamp)),
-            WidgetFreshness.hashrateLabel(data), MarketDisplay.change(market), MarketDisplay.chartCaption(market))
+            WidgetFreshness.hashrateLabel(data), MarketDisplay.change(market), MarketDisplay.chartCaption(market, range = range))
         if (key != previewState) {
             previewState = key
             val height = if (large) 300 else 180; val width = if (large) 250 else 140

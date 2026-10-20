@@ -1,6 +1,7 @@
 package com.kaspa.livewidget.utils
 
 import android.content.Context
+import com.kaspa.livewidget.data.ChartRange
 
 data class WidgetColors(
     val background: Int = 0xFF050C18.toInt(),
@@ -23,14 +24,16 @@ data class WidgetPreferences(
     val theme: String = "dark",
     val showChart: Boolean = true,
     val customColors: WidgetColors = WidgetColors(),
-    val chartIntensity: Int = 50
+    val chartIntensity: Int = 50,
+    val chartRange: String = "24h"
 ) {
     fun normalized() = copy(
         currency = currency.takeIf { it in CURRENCIES } ?: "USD",
         intervalMinutes = intervalMinutes.takeIf { it in INTERVALS } ?: 15L,
         theme = theme.takeIf { it in THEMES } ?: "dark",
         customColors = customColors.normalized(),
-        chartIntensity = chartIntensity.coerceIn(0, 100)
+        chartIntensity = chartIntensity.coerceIn(0, 100),
+        chartRange = ChartRange.fromKey(chartRange).key
     )
 
     companion object {
@@ -50,7 +53,8 @@ class WidgetSettings(context: Context) {
         WidgetColors(prefs.getInt("color_background", WidgetColors().background),
             prefs.getInt("color_text", WidgetColors().text), prefs.getInt("color_accent", WidgetColors().accent),
             optionalColor("clock"), optionalColor("price"), optionalColor("chart"), optionalColor("network")),
-        prefs.getInt("chart_intensity", 50)
+        prefs.getInt("chart_intensity", 50),
+        prefs.getString("chart_range", "24h") ?: "24h"
     ).normalized()
 
     fun save(value: WidgetPreferences) {
@@ -59,6 +63,7 @@ class WidgetSettings(context: Context) {
             .putString("theme", safe.theme).putBoolean("chart", safe.showChart)
             .putInt("color_background", safe.customColors.background).putInt("color_text", safe.customColors.text)
             .putInt("color_accent", safe.customColors.accent).putInt("chart_intensity", safe.chartIntensity)
+            .putString("chart_range", safe.chartRange)
             .apply {
                 for ((key, color) in listOf("clock" to safe.customColors.clock, "price" to safe.customColors.price,
                     "chart" to safe.customColors.chart, "network" to safe.customColors.network)) {

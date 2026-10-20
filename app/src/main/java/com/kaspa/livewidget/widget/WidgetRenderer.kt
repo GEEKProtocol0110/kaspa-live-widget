@@ -11,6 +11,7 @@ import android.widget.RemoteViews
 import com.kaspa.livewidget.R
 import com.kaspa.livewidget.SettingsActivity
 import com.kaspa.livewidget.data.KaspaNetworkData
+import com.kaspa.livewidget.data.ChartRange
 import com.kaspa.livewidget.utils.*
 import java.util.Locale
 
@@ -25,7 +26,8 @@ object WidgetRenderer {
               previewPreferences: WidgetPreferences? = null): RemoteViews {
         val prefs = previewPreferences?.normalized() ?: WidgetSettings(context).get()
         val data = DataCache(context).getCachedData() ?: KaspaNetworkData()
-        val market = MarketCache(context).get(prefs.currency)
+        val range = ChartRange.fromKey(prefs.chartRange)
+        val market = MarketCache(context).get(prefs.currency, range)
         val status = RefreshStatusCache(context).get()
         val views = RemoteViews(context.packageName, if (large) R.layout.widget_layout_large else R.layout.widget_layout)
         val refresh = if (large) Intent(context, KaspaWidgetLargeProvider::class.java).setAction(KaspaWidgetLargeProvider.ACTION_REFRESH)
@@ -55,8 +57,8 @@ object WidgetRenderer {
         views.setImageViewBitmap(R.id.widget_chart, PriceChart.glass(if (prefs.showChart) market.history else emptyList(),light,width,height,
             palette.takeIf { it.personalized }, prefs.chartIntensity))
         views.setViewVisibility(R.id.widget_chart_group, if (prefs.showChart && prefs.chartIntensity > 0) View.VISIBLE else View.GONE)
-        views.setTextViewText(R.id.widget_chart_label, MarketDisplay.chartCaption(market))
-        views.setContentDescription(R.id.widget_chart_label, MarketDisplay.historyLabel(market))
+        views.setTextViewText(R.id.widget_chart_label, MarketDisplay.chartCaption(market, range = range))
+        views.setContentDescription(R.id.widget_chart_label, MarketDisplay.historyLabel(market, range = range))
         if (palette.personalized) {
             views.setInt(R.id.widget_root, "setBackgroundColor", Color.TRANSPARENT)
             views.setImageViewBitmap(R.id.widget_logo, palette.logo(context))
