@@ -33,7 +33,7 @@ internal class UpdateStore(context: Context) {
 /** Only the public release app uses this channel. Play bundles have it compiled out. */
 internal object AppUpdates {
     private val checkMutex = Mutex()
-    fun enabled(context: Context) = BuildConfig.DIRECT_UPDATES && context.packageName == AppRelease.PACKAGE
+    fun enabled(context: Context) = !BuildConfig.DEBUG && BuildConfig.DIRECT_UPDATES && context.packageName == AppRelease.PACKAGE
     fun directory(context: Context) = File(context.cacheDir, "app-updates").apply { mkdirs() }
     fun apk(context: Context) = File(directory(context), "kaspa-live-widget.apk")
 

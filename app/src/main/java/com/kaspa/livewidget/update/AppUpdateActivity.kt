@@ -71,14 +71,17 @@ open class AppUpdateActivity : Activity() {
         val store = UpdateStore(this)
         val automatic = Switch(this).apply {
             text = "Check daily for new versions"; setTextColor(Color.rgb(222, 255, 249)); minHeight = dp(48)
-            isChecked = store.automatic; isEnabled = AppUpdates.enabled(this@AppUpdateActivity)
+            isChecked = AppUpdates.enabled(this@AppUpdateActivity) && store.automatic; isEnabled = AppUpdates.enabled(this@AppUpdateActivity)
             body.addView(this, LinearLayout.LayoutParams(-1, -2))
             setOnCheckedChangeListener { _, value ->
                 store.automatic(value); UpdateScheduler.schedule(this@AppUpdateActivity)
             }
         }
         automatic.id = R.id.app_update_automatic
-        label(body, "Updates download only when you tap Update now. Your widget placement and saved settings stay in place. Android asks you to approve installation.")
+        label(body, if (AppUpdates.enabled(this))
+            "Daily checks contact GitHub’s public release service. Updates download only when you tap Update now. Your widget placement and saved settings stay in place. Android asks you to approve installation."
+            else if (!BuildConfig.DIRECT_UPDATES) "Manage automatic updates in Google Play. Your widget settings stay in place."
+            else "The signed public app provides built-in updates. The debug app installs separately.")
         button(body, "Release notes", R.id.app_update_notes) {
             try { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(AppRelease.RELEASES))) }
             catch (_: ActivityNotFoundException) { Toast.makeText(this, "No browser is available", Toast.LENGTH_SHORT).show() }
