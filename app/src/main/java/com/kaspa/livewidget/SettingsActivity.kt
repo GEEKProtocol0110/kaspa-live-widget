@@ -25,6 +25,9 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.graphics.ColorUtils
 import com.kaspa.livewidget.data.KaspaNetworkData
 import com.kaspa.livewidget.data.ChartRange
+import com.kaspa.livewidget.update.AppUpdateActivity
+import com.kaspa.livewidget.update.UpdateStore
+import com.kaspa.livewidget.update.AppUpdates
 import com.kaspa.livewidget.utils.*
 import com.kaspa.livewidget.widget.*
 
@@ -197,6 +200,9 @@ class SettingsActivity : Activity() {
         button("Install help & data sources", R.id.toggle_help, help) {
             details.visibility = if (details.visibility == View.VISIBLE) View.GONE else View.VISIBLE
         }
+        button("App updates", R.id.app_updates, help) {
+            startActivity(Intent(this, AppUpdateActivity::class.java))
+        }
         button("Downloads & release notes", R.id.release_notes, help) {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/GEEKProtocol0110/kaspa-live-widget/releases")))
         }
@@ -301,6 +307,8 @@ class SettingsActivity : Activity() {
     private fun display() {
         if (!ready) return
         val saved = WidgetSettings(this).get(); val draft = selected()
+        val update = if (AppUpdates.enabled(this)) UpdateStore(this).available() else null
+        findViewById<Button>(R.id.app_updates).text = update?.let { "Update available · ${it.versionName}" } ?: "App updates"
         if (activeTheme != draft.theme) { activeTheme = draft.theme; paintScreen() }
         colorControls.visibility = if (draft.theme == "custom") View.VISIBLE else View.GONE
         backgroundColorButton.text = "Background · ${ColorEditor.hex(draftColors.background)}"

@@ -6,6 +6,7 @@ import android.content.Context
 import androidx.work.*
 import com.kaspa.livewidget.widget.*
 import com.kaspa.livewidget.worker.WidgetUpdateWorker
+import com.kaspa.livewidget.update.UpdateScheduler
 import java.util.concurrent.TimeUnit
 
 object WorkScheduler {
@@ -25,6 +26,7 @@ object WorkScheduler {
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(WORK_NAME,
             ExistingPeriodicWorkPolicy.UPDATE,
             PeriodicWorkRequestBuilder<WidgetUpdateWorker>(WidgetSettings(context).get().intervalMinutes.toLong(), TimeUnit.MINUTES).build())
+        UpdateScheduler.schedule(context)
         refreshNow(context, settingsChanged)
     }
 
@@ -38,6 +40,7 @@ object WorkScheduler {
         if (!hasWidgets(context)) {
             WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME)
             WorkManager.getInstance(context).cancelUniqueWork(INITIAL_WORK_NAME)
+            WorkManager.getInstance(context).cancelUniqueWork(UpdateScheduler.CHECK)
         }
     }
 }

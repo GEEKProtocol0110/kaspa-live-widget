@@ -49,6 +49,11 @@ jobs:
     - name: Build debug APK
       run: ./gradlew assembleDebug --stacktrace
       
+    - name: Build Play bundle without direct APK installation permission
+      run: |
+        ./gradlew bundleRelease -PplayDistribution=true --no-daemon
+        python3 scripts/verify-play-build.py
+
     - name: Upload debug APK
       uses: actions/upload-artifact@v4
       with:

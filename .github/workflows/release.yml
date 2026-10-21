@@ -8,7 +8,7 @@ on:
       release_tag:
         description: 'Version tag matching the current main app version'
         required: true
-        default: 'v1.5.1'
+        default: 'v1.6.0'
         type: string
 
 env:
@@ -66,7 +66,10 @@ jobs:
           echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
           chmod +x gradlew
       - name: Test and build signed APK and Play bundle
-        run: ./gradlew build bundleRelease --no-daemon
+        run: |
+          ./gradlew build --no-daemon
+          ./gradlew bundleRelease -PplayDistribution=true --no-daemon
+          python3 scripts/verify-play-build.py
       - name: Verify signature and update compatibility
         env:
           GH_TOKEN: ${{ github.token }}

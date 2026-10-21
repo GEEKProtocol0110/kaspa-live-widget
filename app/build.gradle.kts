@@ -3,6 +3,8 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+val playDistribution = providers.gradleProperty("playDistribution").orNull == "true"
+
 android {
     namespace = "com.kaspa.livewidget"
     compileSdk = 36
@@ -11,11 +13,16 @@ android {
         applicationId = "com.kaspa.livewidget"
         minSdk = 26
         targetSdk = 36
-        versionCode = 11
-        versionName = "1.5.1"
+        versionCode = 12
+        versionName = "1.6.0"
         
         setProperty("archivesBaseName", "kaspa-widget-v$versionName")
     }
+
+    buildFeatures { buildConfig = true }
+    defaultConfig { buildConfigField("boolean", "DIRECT_UPDATES", (!playDistribution).toString()) }
+    sourceSets.getByName("release").manifest.srcFile(if (playDistribution) "src/play/AndroidManifest.xml" else "src/direct/AndroidManifest.xml")
+    sourceSets.getByName("debug").manifest.srcFile("src/direct/AndroidManifest.xml")
 
     val signingEnvironment = listOf("WIDGET_KEYSTORE_PATH", "WIDGET_STORE_PASSWORD", "WIDGET_KEY_ALIAS", "WIDGET_KEY_PASSWORD")
         .associateWith { System.getenv(it)?.takeIf(String::isNotBlank) }
