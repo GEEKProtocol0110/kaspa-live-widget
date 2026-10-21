@@ -12,6 +12,9 @@ import com.kaspa.livewidget.R
 import com.kaspa.livewidget.SettingsActivity
 import com.kaspa.livewidget.data.KaspaNetworkData
 import com.kaspa.livewidget.data.ChartRange
+import com.kaspa.livewidget.update.AppUpdates
+import com.kaspa.livewidget.update.UpdateStore
+import com.kaspa.livewidget.update.AppUpdateActivity
 import com.kaspa.livewidget.utils.*
 import java.util.Locale
 
@@ -33,8 +36,11 @@ object WidgetRenderer {
         val refresh = if (large) Intent(context, KaspaWidgetLargeProvider::class.java).setAction(KaspaWidgetLargeProvider.ACTION_REFRESH)
             else Intent(context, KaspaWidgetProvider::class.java).setAction(KaspaWidgetProvider.ACTION_REFRESH)
         views.setOnClickPendingIntent(R.id.widget_root, PendingIntent.getBroadcast(context, 0, refresh, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
+        val appUpdate = if (AppUpdates.enabled(context)) UpdateStore(context).available() else null
+        views.setTextViewText(R.id.widget_settings, if (appUpdate != null) "Update" else "Setup")
+        views.setContentDescription(R.id.widget_settings, if (appUpdate != null) "Update to version ${appUpdate.versionName}" else "Widget setup")
         views.setOnClickPendingIntent(R.id.widget_settings, PendingIntent.getActivity(context, 0,
-            Intent(context, SettingsActivity::class.java), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
+            Intent(context, if (appUpdate != null) AppUpdateActivity::class.java else SettingsActivity::class.java), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
         val fullStatus = status.label(prefs.currency)
         val statusCaption = RefreshFeedback.caption(status, market, data, ConnectionState.offline(context))
         views.setTextViewText(R.id.widget_status, statusCaption)

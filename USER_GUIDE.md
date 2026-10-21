@@ -38,6 +38,8 @@ Tap the widget or **Refresh now** to see queued/running/completed status. Partia
 
 The chart uses actual CoinGecko observations for the selected range. The 1H range selects the past hour from the daily feed; 7D and 30D load their own series. Chart range and the 15/30/60-minute background refresh are independent. The percentage beside the price always shows the 24-hour change. Switching ranges keeps a separate saved history for each currency and range; a range you have not loaded yet shows unavailable until a successful refresh. Its neon line appears behind the frosted-glass panels on both widget sizes, with a separate preview in the app. Unavailable series show a message. Cached charts older than an hour show stale. Price/network readings older than 30 minutes show stale even when you select a 60-minute refresh interval.
 
+Use **App updates** to check for a new version. In the signed direct-download app, tap **Update now**, wait for verification, then **Install update**. Android asks you to approve installation and may require a one-time Allow from this source permission. Daily checks can be turned off on that screen. The updater never downloads or installs a release just because it detects one. Existing older apps need one installation of v1.6.0 to gain this feature.
+
 Use **Downloads and release notes** to open GitHub Releases. Public signed releases require the owner’s one-time setup in [SIGNED_RELEASES.md](SIGNED_RELEASES.md). After the first signed release, newer release APKs update the existing app and preserve settings. Debug CI builds are a separate test app.
 
 ## Widget Information

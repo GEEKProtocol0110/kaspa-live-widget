@@ -39,3 +39,7 @@
 -keep class * extends androidx.work.InputMerger
 -keep class androidx.work.impl.** { *; }
 
+
+# WorkManager recreates updater workers after process death.
+-keep class com.kaspa.livewidget.update.UpdateCheckWorker { public <init>(android.content.Context, androidx.work.WorkerParameters); }
+-keep class com.kaspa.livewidget.update.UpdateDownloadWorker { public <init>(android.content.Context, androidx.work.WorkerParameters); }

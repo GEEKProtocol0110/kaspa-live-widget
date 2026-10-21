@@ -44,3 +44,7 @@ Android’s signing requirements: https://developer.android.com/studio/publish/a
 ## Google Play bundle releases
 
 v1.4.0 targets API 36 and includes a signed AAB, APK and checksums. The release workflow uses JDK 21 because Android 16 Robolectric tests require it. You can run **Signed release → Run workflow** on main with the tag matching the app version; it creates the new tag only after build/test/lint and both signing certificates pass. Never reuse a published version tag. The real-device screenshot job installs the previous APK and verifies the signed update on Android 16. Play registration, signing-key import and submission follow [the owner checklist](play-store/release-checklist.md).
+
+## Direct APK and Play update channels
+
+From v1.6.0 the APK uses a user-approved built-in updater. Build the APK with the default configuration. Build the Play bundle separately with `./gradlew bundleRelease -PplayDistribution=true`; the release workflow does both and verifies that the Play manifest excludes `REQUEST_INSTALL_PACKAGES`. Do not upload a default direct-update bundle to Play. Both use the same backed-up signing identity and application ID; preserve the matching Play app signing certificate during store setup.

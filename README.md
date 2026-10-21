@@ -192,3 +192,11 @@ In setup, choose **X-ray · black & white** for monochrome glass, or **Custom co
 Use **Chart intensity** for a subtle line or brighter glow; 0% hides the line without inventing data. **Custom colors** includes separate clock, price, chart and network colors. **Use accent/text for all readings** links them back to the original palette. Save up to 20 named looks on your device, then load one as a draft and tap **Apply settings**. Looks leave your currency and refresh interval unchanged. Refresh feedback distinguishes queued/running work, offline or unavailable feeds, and stale saved readings.
 
 For installation and download troubleshooting, use the [HQ widget guide](https://www.geekprotocol.xyz/tools/kaspa-widget/).
+
+### Built-in updates (v1.6.0)
+
+The signed direct-download Android app checks for stable releases daily while its widgets are active. A widget’s **Setup** link becomes **Update** when a newer version is saved. Open **Setup → App updates** to check manually or turn daily checks off. Tap **Update now** to download inside the app, then **Install update**. Android may first ask you to allow updates from Kaspa Live Widget and always owns installation approval. Settings and widget placement are preserved by an in-place signed upgrade.
+
+Downloads are bounded and checked against the release SHA-256, package ID, increasing version code/name, and the installed publisher certificate. Downloads run through WorkManager and continue across screen rotation; offline or failed checks keep their last success time. Debug installations cannot replace the signed public app. Existing versions need one installation of v1.6.0 to gain this updater.
+
+The Google Play bundle is built with `-PplayDistribution=true`; this disables direct updates and excludes the package-install permission. It uses Google Play’s own update channel after store publication. The public APK keeps the free direct-update channel.

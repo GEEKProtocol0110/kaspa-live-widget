@@ -18,6 +18,15 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".update.AppUpdateActivity" android:exported="false" />
+        <provider android:name=".update.UpdateFileProvider"
+            android:authorities="${applicationId}.updates" android:exported="false" android:grantUriPermissions="true">
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/update_file_paths" />
+        </provider>
+        <receiver android:name=".update.AppUpgradeReceiver" android:exported="false">
+            <intent-filter><action android:name="android.intent.action.MY_PACKAGE_REPLACED" /></intent-filter>
+        </receiver>
+
         <!-- Widget receiver for 2x2 layout -->
         <receiver
             android:name=".widget.KaspaWidgetProvider"

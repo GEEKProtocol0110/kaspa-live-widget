@@ -14,3 +14,9 @@ Source review for v1.4.1 at `5bfe3ecc5f8f0e5fbccd43957aa2936ec1a93ce6`: the app 
 | Payments/trading | No purchases, wallet access or trading actions | Free Tools utility; prices are informational |
 
 The developer must review the actual Play form against the final binary and third-party provider practices. Do not automatically select “No data collected” merely because this app has no developer-operated server. GitHub and HQ pages opened in a separate browser have separate policies. These notes are preparation, not legal declarations or a completed submission.
+
+## v1.6.0 distribution channels
+
+The direct-download APK adds optional daily HTTPS requests to GitHub’s public release API and user-requested APK downloads from GitHub’s release CDN. These requests expose ordinary network metadata to GitHub. The update screen names the provider and offers a daily-check opt-out. Metadata/progress stay in app storage; APKs are saved in private cache and verified before an Android-managed installation prompt. The APK declares `REQUEST_INSTALL_PACKAGES` for that user-approved flow.
+
+The Play bundle is built separately with `-PplayDistribution=true`. Direct checks/downloads are disabled and the package-install permission is absent; CI verifies these differences. Review the final Play-delivered binary rather than applying the direct APK’s permissions/data-flow description to Play.
