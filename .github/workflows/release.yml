@@ -28,7 +28,7 @@ jobs:
       WIDGET_KEY_PASSWORD: ${{ secrets.WIDGET_KEY_PASSWORD }}
       WIDGET_SIGNING_CERT_SHA256: ${{ secrets.WIDGET_SIGNING_CERT_SHA256 }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           ref: ${{ github.event_name == 'workflow_dispatch' && 'main' || github.ref }}
@@ -134,7 +134,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-java@v4
         with:
           java-version: '21'
