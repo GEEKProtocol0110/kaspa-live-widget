@@ -85,7 +85,7 @@ dependencies {
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
-    testImplementation("com.squareup.okhttp3:mockwebserver:4.11.0")
+    testImplementation("com.squareup.okhttp3:mockwebserver:5.5.1")
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.16")
     testImplementation("androidx.work:work-testing:2.9.0")
