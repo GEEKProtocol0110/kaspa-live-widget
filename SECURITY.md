@@ -10,6 +10,8 @@
 
 If you discover a security vulnerability within Kaspa Live Widget, please send an email to the repository owner or create a private security advisory on GitHub.
 
+GitHub private vulnerability reporting is now enabled on this repository and is the preferred reporting path.
+
 **Please do not report security vulnerabilities through public GitHub issues.**
 
 ### What to Include

@@ -158,6 +158,8 @@ suspend fun fetchNewData(): DataType? = withContext(Dispatchers.IO) {
    ```
 8. **Create pull request** on GitHub
 
+Accepted pull requests are squash-merged.
+
 ### Commit Messages
 
 Follow conventional commits:
