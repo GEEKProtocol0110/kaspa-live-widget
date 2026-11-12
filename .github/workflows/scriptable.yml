@@ -22,7 +22,7 @@ jobs:
       - run: node --test scriptable/widget.test.cjs
       - name: Record public feed compatibility
         run: node scriptable/check-live-feeds.cjs
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: scriptable-live-feeds

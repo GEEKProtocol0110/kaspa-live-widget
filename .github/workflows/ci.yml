@@ -40,7 +40,7 @@ jobs:
 
     - name: Upload regression reports
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: unit-test-reports
         path: app/build/test-results/
@@ -55,7 +55,7 @@ jobs:
         python3 scripts/verify-play-build.py
 
     - name: Upload debug APK
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: debug-apk
         path: app/build/outputs/apk/debug/*.apk
@@ -100,14 +100,14 @@ jobs:
           script: |
             python3 play-store/layout-proof.py
             python3 play-store/theme-proof.py
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: layout-api-${{ matrix.api }}
           path: layout-evidence/
           retention-days: 30
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: theme-api-${{ matrix.api }}
