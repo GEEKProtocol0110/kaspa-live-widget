@@ -162,7 +162,7 @@ jobs:
             adb install previous/kaspa-live-widget.apk
             adb install -r current/kaspa-live-widget.apk
             python3 play-store/capture.py
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: real-phone-screenshots
